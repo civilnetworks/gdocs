@@ -7,6 +7,24 @@ import { SectionContainer, Section } from "../Page/styles";
 import Prism from "prismjs";
 import "prismjs/components/prism-lua";
 
+const CODE_LANGUAGE = "lua";
+const CODE_CLASS = `language-${CODE_LANGUAGE}`;
+
+const renderCodeBlock = (code: string, key: string) => {
+	const language = Prism.languages[CODE_LANGUAGE];
+	const highlighted = language
+		? Prism.highlight(code, language, CODE_LANGUAGE)
+		: code;
+	return (
+		<pre key={key} className={CODE_CLASS}>
+			<code
+				className={CODE_CLASS}
+				dangerouslySetInnerHTML={{ __html: highlighted }}
+			/>
+		</pre>
+	);
+};
+
 const WikiPage: React.FC<{}> = () => {
 	const { tab, category } = useParams();
 	const category_object = project[tab]?.subcategories?.[category];
@@ -53,19 +71,7 @@ const WikiPage: React.FC<{}> = () => {
 					break;
 				case "code":
 					flushParagraph();
-					const highlighted = Prism.highlight(
-						item.content,
-						Prism.languages.lua,
-						"lua"
-					);
-					elements.push(
-						<pre key={`code-${index}`} className="language-lua">
-							<code
-								className="language-lua"
-								dangerouslySetInnerHTML={{ __html: highlighted }}
-							/>
-						</pre>
-					);
+					elements.push(renderCodeBlock(item.content, `code-${index}`));
 					break;
 			}
 		});
