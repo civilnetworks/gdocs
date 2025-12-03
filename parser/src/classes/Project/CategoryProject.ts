@@ -7,6 +7,7 @@ import SelectorTag from "../Tags/SelectorTag.ts";
 import Tag from "../Tags/Tag.ts";
 import BooleanTag from "../Tags/BooleanTag.ts";
 import BlockTag from "../Tags/BlockTag.ts";
+import WikiAliasTag from "../Tags/WikiAliasTag.ts";
 
 export interface ProjectStructure {
   [key: string]: Category;
@@ -90,13 +91,14 @@ export default class CategoryProject {
       false,
       true,
     );
+    // Wikis category - don't pass tag_name to avoid standard alias creation
+    // We use WikiAliasTag which handles name and description extraction
     this.add_category(
       new Category("Wikis", "wiki"),
       false,
-      "wiki",
-      false,
-      true,
     );
+    // Add custom wiki alias that extracts both name and description
+    this.add_tag(new WikiAliasTag());
 
     /* Default categories that define types. */
     this.add_category_type("Classes");
