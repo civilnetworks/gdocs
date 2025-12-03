@@ -58,10 +58,6 @@ export default class Tags {
   blockTags: {
     [key: string]: BlockTag;
   };
-  // Cache for pre-compiled block tag regex patterns
-  private blockTagRegexCache: {
-    [key: string]: RegExp;
-  };
   allowed_globals: string[];
 
   constructor() {
@@ -70,7 +66,6 @@ export default class Tags {
     this.alias = Object.create(null, {});
     this.multiBlockAlias = Object.create(null, {});
     this.blockTags = Object.create(null, {});
-    this.blockTagRegexCache = Object.create(null, {});
     this.allowed_globals = [];
 
     /* These tags are hardcoded and are essential for the functioning of
@@ -93,11 +88,6 @@ export default class Tags {
       this.blockTags[tag.name] = tag;
       // Also add to tags so it can be processed normally after preprocessing
       this.tags[tag.name] = tag;
-      // Pre-compile and cache the regex pattern for this block tag
-      this.blockTagRegexCache[tag.name] = new RegExp(
-        `@${tag.name}${WHITESPACE_PATTERN}[\\n\\r\\u2028\\u2029]([\\s\\S]*?)@${tag.name}(?:\\s|$)`,
-        "gm"
-      );
 
       if (allowed_as_global) {
         this.allowed_globals.push(tag.name);
@@ -112,36 +102,39 @@ export default class Tags {
   }
 
   /**
-   * Preprocesses block content to convert paired block tags (like @code...@code)
-   * into single tags with captured content (like @code captured_content).
-   * @param content The uncommented block content
-   * @param path The file path (for error messages)
-   * @param firstLine The first line number of the block
+   * Preprocesses raw file content to convert paired block tags (like -- @code ... -- @code)
+   * into single tags with captured content. This runs BEFORE comment block extraction
+   * so it can capture actual uncommented code between the markers.
+   * @param content The raw file content
    * @returns The preprocessed content with block tags converted
    */
-  private preprocessBlockTags(content: string, path: string, firstLine: number): string {
+  private preprocessFileBlockTags(content: string): string {
     let result = content;
 
-    // Process each registered block tag using cached regex patterns
+    // Process each registered block tag
     for (const tagName in this.blockTags) {
-      // Use pre-compiled regex from cache, create a copy to reset lastIndex
-      const blockTagRe = new RegExp(this.blockTagRegexCache[tagName].source, "gm");
+      // Regex to match: -- @tagName (opening marker) ... -- @tagName (closing marker)
+      // Captures everything between the markers including actual code
+      const blockTagRe = new RegExp(
+        `^(${WHITESPACE_PATTERN})--${WHITESPACE_PATTERN}@${tagName}${WHITESPACE_PATTERN}$[\\n\\r\\u2028\\u2029]([\\s\\S]*?)^${WHITESPACE_PATTERN}--${WHITESPACE_PATTERN}@${tagName}${WHITESPACE_PATTERN}$`,
+        "gm"
+      );
 
       // Collect all matches first to process in reverse order
-      // This avoids index shifting issues during replacement
-      const matches: { index: number; length: number; capturedContent: string }[] = [];
+      const matches: { index: number; length: number; indent: string; capturedContent: string }[] = [];
       let match;
       while ((match = blockTagRe.exec(result)) !== null) {
         matches.push({
           index: match.index,
           length: match[0].length,
-          capturedContent: match[1],
+          indent: match[1], // Preserve the indentation of the opening marker
+          capturedContent: match[2],
         });
       }
 
       // Process matches in reverse order to preserve indices
       for (let i = matches.length - 1; i >= 0; i--) {
-        const { index, length, capturedContent } = matches[i];
+        const { index, length, indent, capturedContent } = matches[i];
         const lines = capturedContent.split(/[\n\r\u2028\u2029]/);
 
         // Find the minimum indentation (excluding empty lines)
@@ -154,14 +147,20 @@ export default class Tags {
         }
         if (minIndent === Infinity) minIndent = 0;
 
-        // Remove the common minimum indentation from all lines
+        // Remove the common minimum indentation from all lines and join with newlines
         const trimmedContent = lines
           .map(line => line.substring(minIndent))
           .join("\n")
           .trim();
 
-        // Replace the paired tags with a single tag containing the captured content
-        const replacement = `@${tagName} ${trimmedContent}`;
+        // Replace the paired tags with a single commented tag containing the captured content
+        // Convert to a multiline comment format where each line is prefixed with --
+        // This ensures the code block stays within the comment block
+        const contentLines = trimmedContent.split("\n");
+        const replacement = `${indent}-- @${tagName} ${contentLines[0]}` +
+          (contentLines.length > 1
+            ? "\n" + contentLines.slice(1).map(line => `${indent}-- ${line}`).join("\n")
+            : "");
         result = result.substring(0, index) + replacement + result.substring(index + length);
       }
     }
@@ -208,9 +207,14 @@ export default class Tags {
     const blocks: DocBlock[] = [];
     const decoder = new TextDecoder("utf-8");
 
-    const file_content = decoder.decode(Deno
+    let file_content = decoder.decode(Deno
       .readFileSync(path))
       .replace(carriage_re, "");
+    
+    // Preprocess block tags (like -- @code ... -- @code) BEFORE extracting comment blocks
+    // This allows capturing actual code between the markers
+    file_content = this.preprocessFileBlockTags(file_content);
+    
     const block_matches = find_all(block_re, file_content);
     // Counter for generating unique synthetic line numbers for multi-block aliases
     let syntheticLineCounter = SYNTHETIC_LINE_NUMBER_BASE;
@@ -228,9 +232,7 @@ export default class Tags {
         uncomment_re,
         "",
       );
-      // Preprocess block tags (like @code...@code) before regular tag processing
-      const preprocessed_block = this.preprocessBlockTags(uncomment_block, path, match.line);
-      this.find_and_add_tags(path, block, match.line, preprocessed_block);
+      this.find_and_add_tags(path, block, match.line, uncomment_block);
 
       if (!block["name"] && match.groups?.name) {
         this.find_and_add_tags(
