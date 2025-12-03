@@ -126,6 +126,8 @@ export default class Tags {
       .readFileSync(path))
       .replace(carriage_re, "");
     const block_matches = find_all(block_re, file_content);
+    // Counter for generating unique synthetic line numbers for multi-block aliases
+    let syntheticLineCounter = 1_000_000;
 
     block_matches.forEach((match) => {
       /* Object with no prototype to avoid name collisions. */
@@ -173,7 +175,7 @@ export default class Tags {
                 tag.match,
               );
 
-              new_blocks.forEach((new_block_tags, idx) => {
+              new_blocks.forEach((new_block_tags) => {
                 const new_block: DocBlock = Object.create(null, {});
                 new_block_tags.forEach((new_tag) => {
                   this.find_and_add_tags(
@@ -186,9 +188,11 @@ export default class Tags {
                 });
                 blocks.push(new_block);
                 // Create a synthetic match object with unique line number
-                // Use a small offset (0.001 * idx) to ensure uniqueness while keeping same integer part
-                const synthetic_match = Object.assign({}, block_matches[blockIndex]) as MatchesArray;
-                synthetic_match.line = block_matches[blockIndex].line + (0.001 * idx);
+                // Use a counter to generate unique integer line numbers that won't conflict with real lines
+                const synthetic_match = {
+                  ...block_matches[blockIndex],
+                  line: syntheticLineCounter++,
+                } as MatchesArray;
                 block_matches.push(synthetic_match);
               });
             } catch (e) {
