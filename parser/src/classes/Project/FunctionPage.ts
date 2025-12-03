@@ -32,7 +32,7 @@ export default class FunctionPage {
       (param) => ({
         type: param[0],
         name: param[1],
-        description: param[2],
+        description: param[2] ?? "",
       }),
     );
     this.parameters = params.length > 0 ? params : undefined;
