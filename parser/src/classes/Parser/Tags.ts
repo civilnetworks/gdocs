@@ -1,8 +1,9 @@
 import { AnyTag } from "../../utils/types.ts";
 import AliasTag from "../Tags/AliasTag.ts";
+import MultiBlockAliasTag from "../Tags/MultiBlockAliasTag.ts";
 import { error_message, warning_message } from "../../utils/functions.ts";
 // import fs from "fs";
-import { find_all } from "../../utils/regex.ts";
+import { find_all, MatchesArray } from "../../utils/regex.ts";
 import BooleanTag from "../Tags/BooleanTag.ts";
 import DescriptionTag from "../Tags/DescriptionTag.ts";
 import Tag from "../Tags/Tag.ts";
@@ -38,6 +39,9 @@ const trim_left_re = /^((?: |\t)*)/gm;
 const rich_trim_re = /^ /gm;
 const trim_right_re = /(.)(?: |\t)*[\n\r\u2028\u2029]((?!@\w+).)/g;
 const ignore_re = /@ignore/g;
+// Base line number for synthetic blocks created by MultiBlockAliasTag
+// Uses a high number to avoid collision with actual source file line numbers
+const SYNTHETIC_LINE_NUMBER_BASE = 1_000_000;
 export default class Tags {
   tags: {
     [key: string]: AnyTag;
@@ -45,12 +49,16 @@ export default class Tags {
   alias: {
     [key: string]: AliasTag;
   };
+  multiBlockAlias: {
+    [key: string]: MultiBlockAliasTag;
+  };
   allowed_globals: string[];
 
   constructor() {
     /* Objects with no prototype to avoid name collisions */
     this.tags = Object.create(null, {});
     this.alias = Object.create(null, {});
+    this.multiBlockAlias = Object.create(null, {});
     this.allowed_globals = [];
 
     /* These tags are hardcoded and are essential for the functioning of
@@ -61,11 +69,13 @@ export default class Tags {
   }
 
   add_tag(tag: AnyTag, allowed_as_global: boolean = false) {
-    if (this.tags[tag.name] || this.alias[tag.name]) {
+    if (this.tags[tag.name] || this.alias[tag.name] || this.multiBlockAlias[tag.name]) {
       throw new Error(`The '@${tag.name}' tag already exists.`);
     }
 
-    if (tag instanceof AliasTag) {
+    if (tag instanceof MultiBlockAliasTag) {
+      this.multiBlockAlias[tag.name] = tag;
+    } else if (tag instanceof AliasTag) {
       this.alias[tag.name] = tag;
     } else {
       this.tags[tag.name] = tag;
@@ -88,7 +98,7 @@ export default class Tags {
       const line = first_line + (from_alias ? 0 : tag_match.line - 1);
 
       /* Check if the tag exists. */
-      if (!this.tags[tag_name] && !this.alias[tag_name]) {
+      if (!this.tags[tag_name] && !this.alias[tag_name] && !this.multiBlockAlias[tag_name]) {
         error_message(
           path,
           line,
@@ -96,7 +106,7 @@ export default class Tags {
         );
       }
 
-      const rich = (this.tags[tag_name] || this.alias[tag_name]).rich;
+      const rich = (this.tags[tag_name] || this.alias[tag_name] || this.multiBlockAlias[tag_name]).rich;
 
       const tag_info: TagInfo = {
         line: line,
@@ -119,6 +129,8 @@ export default class Tags {
       .readFileSync(path))
       .replace(carriage_re, "");
     const block_matches = find_all(block_re, file_content);
+    // Counter for generating unique synthetic line numbers for multi-block aliases
+    let syntheticLineCounter = SYNTHETIC_LINE_NUMBER_BASE;
 
     block_matches.forEach((match) => {
       /* Object with no prototype to avoid name collisions. */
@@ -144,6 +156,61 @@ export default class Tags {
         );
       }
     });
+
+    /* Process all multi-block alias tags first */
+    let found_multi_block_alias = true;
+    while (found_multi_block_alias) {
+      found_multi_block_alias = false;
+
+      blocks.forEach((block, blockIndex) => {
+        for (let tag_name in block) {
+          if (!this.multiBlockAlias[tag_name]) {
+            continue;
+          }
+
+          found_multi_block_alias = true;
+
+          for (let i = 0; i < block[tag_name].length; i++) {
+            const tag: TagInfo = block[tag_name][i];
+
+            try {
+              const new_blocks = this.multiBlockAlias[tag_name].convert(
+                tag.match,
+              );
+
+              new_blocks.forEach((new_block_tags) => {
+                const new_block: DocBlock = Object.create(null, {});
+                new_block_tags.forEach((new_tag) => {
+                  this.find_and_add_tags(
+                    path,
+                    new_block,
+                    tag.line,
+                    new_tag,
+                    true,
+                  );
+                });
+                blocks.push(new_block);
+                // Create a synthetic match object with unique line number for block enumeration.
+                // Only the 'line' property is used for block indexing, so we spread the original
+                // match properties to maintain interface compatibility while overriding line.
+                const synthetic_match = {
+                  ...block_matches[blockIndex],
+                  line: syntheticLineCounter++,
+                } as MatchesArray;
+                block_matches.push(synthetic_match);
+              });
+            } catch (e) {
+              if (e instanceof Error) {
+                throw e;
+              }
+              error_message(path, tag.line, e);
+            }
+          }
+
+          delete block[tag_name];
+        }
+      });
+    }
 
     /* Process all alias tags */
     let found_alias = true;

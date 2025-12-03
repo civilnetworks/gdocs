@@ -2,6 +2,7 @@ import Parser from "../Parser/Parser.ts";
 import Category from "./Category.ts";
 import { AnyTag } from "../../utils/types.ts";
 import AliasTag from "../Tags/AliasTag.ts";
+import MultiBlockAliasTag from "../Tags/MultiBlockAliasTag.ts";
 import SelectorTag from "../Tags/SelectorTag.ts";
 import Tag from "../Tags/Tag.ts";
 import BooleanTag from "../Tags/BooleanTag.ts";
@@ -44,6 +45,21 @@ export default class CategoryProject {
         `@subcategory ${subcategory}`,
         `@name ${name}`,
       ]),
+    );
+    this.add_tag(
+      new MultiBlockAliasTag("accessor", 4, ([table, accessor, type, description]) => {
+        const desc = description?.trim() || "";
+        return [
+          [
+            `@name ${table}:Get${accessor}`,
+            `@treturn ${type}${desc ? ` ${desc}` : ""}`,
+          ],
+          [
+            `@name ${table}:Set${accessor}`,
+            `@tparam ${type} value${desc ? ` ${desc}` : ""}`,
+          ],
+        ];
+      }),
     );
 
     /* Default category */
