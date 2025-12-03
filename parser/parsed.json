@@ -494,7 +494,7 @@
                                 {
                                     "type": "Angle",
                                     "name": "angles",
-                                    "description": "Angles of the 3D2D context. +x in the 2d context corresponds to +x of the angle (its forward direction). +y in the 2d context corresponds to -y of the angle (its right direction).\n\nIf (dx, dy) are your desired (+x, +y) unit vectors, the angle you want is dx:AngleEx(dx:Cross(-dy))."
+                                    "description": "Angles of the 3D2D context. +x in the 2d context corresponds to +x of the angle (its forward direction). +y in the 2d context corresponds to -y of the angle (its right direction)."
                                 },
                                 {
                                     "type": "number",
@@ -1205,8 +1205,9 @@
             "name": "Wikis",
             "pageType": "wiki",
             "subcategories": {
-                "Getting Started This wiki page explains how to get started with the project.\n": {
-                    "name": "Getting Started This wiki page explains how to get started with the project.\n",
+                "Getting Started": {
+                    "name": "Getting Started",
+                    "description": "This wiki page explains how to get started with the project.",
                     "item": "wiki",
                     "content": [
                         {
@@ -1273,8 +1274,22 @@
                 },
                 "Example UI: 3D2D Test UI": {
                     "name": "Example UI: 3D2D Test UI",
+                    "description": "This example shows how to create and populate a 3D2D CNUI panel infront of the player.",
                     "item": "wiki",
-                    "content": []
+                    "content": [
+                        {
+                            "type": "header",
+                            "content": "CNUI Example: 3D2D Test UI"
+                        },
+                        {
+                            "type": "text",
+                            "content": "This example shows how to create and populate a 3D2D CNUI panel infront of the player.\n"
+                        },
+                        {
+                            "type": "code",
+                            "content": "concommand.Add(\"cnui_test_3d2d\", function()\n\nend)"
+                        }
+                    ]
                 }
             },
             "item": "category"

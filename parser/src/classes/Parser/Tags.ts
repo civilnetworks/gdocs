@@ -188,13 +188,28 @@ export default class Tags {
         );
       }
 
-      const rich = (this.tags[tag_name] || this.alias[tag_name] || this.multiBlockAlias[tag_name]).rich;
+      const tagDef = this.tags[tag_name] || this.alias[tag_name] || this.multiBlockAlias[tag_name];
+      const rich = tagDef.rich;
+      // For alias tags (including multiBlockAlias), preserve newlines so the Tag.process
+      // regex can correctly extract only the first line as the argument
+      const isAlias = tagDef.an_alias;
+
+      let match: string;
+      if (rich) {
+        match = tag_match[0].replace(rich_trim_re, "");
+      } else if (isAlias) {
+        // For alias tags, only trim left whitespace but preserve newlines
+        // The Tag.process regex will extract only the content on the first line
+        match = tag_match[0].replace(trim_left_re, "");
+      } else {
+        match = tag_match[0]
+          .replace(trim_left_re, "")
+          .replace(trim_right_re, "$1 $2");
+      }
 
       const tag_info: TagInfo = {
         line: line,
-        match: rich ? tag_match[0].replace(rich_trim_re, "") : tag_match[0]
-          .replace(trim_left_re, "")
-          .replace(trim_right_re, "$1 $2"),
+        match: match,
         from_alias: from_alias,
       };
 
