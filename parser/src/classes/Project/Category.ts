@@ -4,10 +4,11 @@ import { DocBlock } from "../Parser/Tags.ts";
 import { get_multiple, get_unique } from "../../utils/functions.ts";
 import AliasTag from "../Tags/AliasTag.ts";
 import TablePage, { FieldInfo } from "./TablePage.ts";
+import WikiPage from "./WikiPage.ts";
 
-export type ValidSubcategory = Category | FunctionPage | TablePage;
+export type ValidSubcategory = Category | FunctionPage | TablePage | WikiPage;
 
-export type ValidPageTypes = "function" | "table";
+export type ValidPageTypes = "function" | "table" | "wiki";
 
 export default class Category {
   readonly subcategories: {
@@ -72,17 +73,26 @@ export default class Category {
         .map((tag) => tag[0])
         .join("\n\n")
         .trim();
-      const page = this.pageType === "function"
-        ? new FunctionPage(
-          name,
-          description != "" ? description : undefined,
-          block,
-        )
-        : new TablePage(
+      let page: FunctionPage | TablePage | WikiPage;
+      if (this.pageType === "wiki") {
+        page = new WikiPage(
           name,
           description != "" ? description : undefined,
           block,
         );
+      } else if (this.pageType === "table") {
+        page = new TablePage(
+          name,
+          description != "" ? description : undefined,
+          block,
+        );
+      } else {
+        page = new FunctionPage(
+          name,
+          description != "" ? description : undefined,
+          block,
+        );
+      }
 
       if (has_subcategory) {
         const subcategory = get_unique(block, "subcategory") as string;

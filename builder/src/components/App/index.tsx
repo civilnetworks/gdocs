@@ -9,6 +9,7 @@ import { project, title } from "../../util/parsed";
 import FunctionPage from "../../pages/FunctionPage";
 import TablePage from "../../pages/TablePage";
 import CategoryPage from "../../pages/CategoryPage";
+import WikiPage from "../../pages/WikiPage";
 import { dark } from "../../styles/themes/dark";
 import { Helmet } from "react-helmet";
 
@@ -29,6 +30,8 @@ const RouteController: React.FC<{}> = () => {
 
 		if (item.item.startsWith("category")) {
 			return <CategoryPage />;
+		} else if (item.item === "wiki") {
+			return <WikiPage />;
 		} else if (item.item.endsWith("table")) {
 			return <TablePage />;
 		}

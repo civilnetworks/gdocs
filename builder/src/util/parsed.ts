@@ -7,6 +7,7 @@ import {
   mdiFormatListNumbered,
   mdiHook,
   mdiViewQuilt,
+  mdiFileDocument,
 } from "@mdi/js";
 import * as mdiIcons from "@mdi/js";
 
@@ -51,6 +52,21 @@ export interface TablePage {
   item: "table";
 }
 
+export interface WikiContent {
+  type: "header" | "text" | "code" | "br";
+  content: string;
+}
+
+export interface WikiPage {
+  name: string;
+  description?: string;
+  content: WikiContent[];
+  realm?: string;
+  internal?: boolean;
+  deprecated?: boolean;
+  item: "wiki";
+}
+
 export interface Category {
   name: string;
   description?: string;
@@ -64,7 +80,7 @@ export interface Category {
   item: "category";
 }
 
-export type ValidSubcategory = Category | FunctionPage | TablePage;
+export type ValidSubcategory = Category | FunctionPage | TablePage | WikiPage;
 
 export interface ProjectStructure {
   [key: string]: Category;
@@ -90,6 +106,7 @@ export const icons: {
   panels: mdiViewQuilt,
   enums: mdiFormatListNumbered,
   structs: mdiDatabase,
+  wikis: mdiFileDocument,
   default: mdiCursorDefault,
 };
 

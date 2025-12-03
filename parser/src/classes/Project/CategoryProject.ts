@@ -39,6 +39,11 @@ export default class CategoryProject {
     this.add_tag(new BooleanTag("internal"));
     this.add_tag(new BooleanTag("deprecated"));
     this.add_tag(new BooleanTag("stub"));
+    /* Wiki-specific tags */
+    this.add_tag(new Tag("header", 1, false));
+    this.add_tag(new Tag("text", 1, false, false, true));
+    this.add_tag(new Tag("code", 1, false, false, true));
+    this.add_tag(new Tag("br", 0, false));
     this.add_tag(
       new AliasTag("hook", 2, ([subcategory, name]) => [
         "@category hooks",
@@ -81,6 +86,13 @@ export default class CategoryProject {
       new Category("Structs", "table"),
       false,
       "struct",
+      false,
+      true,
+    );
+    this.add_category(
+      new Category("Wikis", "wiki"),
+      false,
+      "wiki",
       false,
       true,
     );
