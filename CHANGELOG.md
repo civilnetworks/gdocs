@@ -65,3 +65,7 @@
 ## Version 1.0.1
 
 - Add @accessor
+
+## Version 1.1.0
+
+- Add wiki attributes
