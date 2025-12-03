@@ -40,6 +40,8 @@ const trim_left_re = /^((?: |\t)*)/gm;
 const rich_trim_re = /^ /gm;
 const trim_right_re = /(.)(?: |\t)*[\n\r\u2028\u2029]((?!@\w+).)/g;
 const ignore_re = /@ignore/g;
+// Whitespace pattern used in regex construction
+const WHITESPACE_PATTERN = "(?: |\\t)*";
 // Base line number for synthetic blocks created by MultiBlockAliasTag
 // Uses a high number to avoid collision with actual source file line numbers
 const SYNTHETIC_LINE_NUMBER_BASE = 1_000_000;
@@ -56,6 +58,10 @@ export default class Tags {
   blockTags: {
     [key: string]: BlockTag;
   };
+  // Cache for pre-compiled block tag regex patterns
+  private blockTagRegexCache: {
+    [key: string]: RegExp;
+  };
   allowed_globals: string[];
 
   constructor() {
@@ -64,6 +70,7 @@ export default class Tags {
     this.alias = Object.create(null, {});
     this.multiBlockAlias = Object.create(null, {});
     this.blockTags = Object.create(null, {});
+    this.blockTagRegexCache = Object.create(null, {});
     this.allowed_globals = [];
 
     /* These tags are hardcoded and are essential for the functioning of
@@ -86,6 +93,11 @@ export default class Tags {
       this.blockTags[tag.name] = tag;
       // Also add to tags so it can be processed normally after preprocessing
       this.tags[tag.name] = tag;
+      // Pre-compile and cache the regex pattern for this block tag
+      this.blockTagRegexCache[tag.name] = new RegExp(
+        `@${tag.name}${WHITESPACE_PATTERN}[\\n\\r\\u2028\\u2029]([\\s\\S]*?)@${tag.name}(?:\\s|$)`,
+        "gm"
+      );
 
       if (allowed_as_global) {
         this.allowed_globals.push(tag.name);
@@ -110,19 +122,26 @@ export default class Tags {
   private preprocessBlockTags(content: string, path: string, firstLine: number): string {
     let result = content;
 
-    // Process each registered block tag
+    // Process each registered block tag using cached regex patterns
     for (const tagName in this.blockTags) {
-      // Regex to find paired @tagName markers and capture content between them
-      // The pattern matches: @tagName (with optional trailing whitespace/newline)
-      // followed by content, followed by @tagName
-      const blockTagRe = new RegExp(
-        `@${tagName}(?: |\\t)*[\\n\\r\\u2028\\u2029]([\\s\\S]*?)@${tagName}(?:\\s|$)`,
-        "gm"
-      );
+      // Use pre-compiled regex from cache, create a copy to reset lastIndex
+      const blockTagRe = new RegExp(this.blockTagRegexCache[tagName].source, "gm");
 
+      // Collect all matches first to process in reverse order
+      // This avoids index shifting issues during replacement
+      const matches: { index: number; length: number; capturedContent: string }[] = [];
       let match;
       while ((match = blockTagRe.exec(result)) !== null) {
-        const capturedContent = match[1];
+        matches.push({
+          index: match.index,
+          length: match[0].length,
+          capturedContent: match[1],
+        });
+      }
+
+      // Process matches in reverse order to preserve indices
+      for (let i = matches.length - 1; i >= 0; i--) {
+        const { index, length, capturedContent } = matches[i];
         const lines = capturedContent.split(/[\n\r\u2028\u2029]/);
 
         // Find the minimum indentation (excluding empty lines)
@@ -143,10 +162,7 @@ export default class Tags {
 
         // Replace the paired tags with a single tag containing the captured content
         const replacement = `@${tagName} ${trimmedContent}`;
-        result = result.substring(0, match.index) + replacement + result.substring(match.index + match[0].length);
-
-        // Reset regex lastIndex since we modified the string
-        blockTagRe.lastIndex = match.index + replacement.length;
+        result = result.substring(0, index) + replacement + result.substring(index + length);
       }
     }
 
