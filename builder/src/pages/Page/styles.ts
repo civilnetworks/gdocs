@@ -16,7 +16,7 @@ export const Container = styled.main`
 `;
 
 export const Title = styled.h4`
-	font-family: Roboto;
+	font-family: "DM Sans", sans-serif;
 	font-weight: 500;
 	font-size: 3.4rem;
 	letter-spacing: 0.025rem;
@@ -29,7 +29,7 @@ export const Title = styled.h4`
 `;
 
 export const Section = styled.h5`
-	font-family: Roboto;
+	font-family: "DM Sans", sans-serif;
 	font-weight: 500;
 	font-size: 2.4rem;
 	letter-spacing: 0;
