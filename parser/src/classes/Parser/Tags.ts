@@ -1,6 +1,7 @@
 import { AnyTag } from "../../utils/types.ts";
 import AliasTag from "../Tags/AliasTag.ts";
 import MultiBlockAliasTag from "../Tags/MultiBlockAliasTag.ts";
+import BlockTag from "../Tags/BlockTag.ts";
 import { error_message, warning_message } from "../../utils/functions.ts";
 // import fs from "fs";
 import { find_all, MatchesArray } from "../../utils/regex.ts";
@@ -52,6 +53,9 @@ export default class Tags {
   multiBlockAlias: {
     [key: string]: MultiBlockAliasTag;
   };
+  blockTags: {
+    [key: string]: BlockTag;
+  };
   allowed_globals: string[];
 
   constructor() {
@@ -59,6 +63,7 @@ export default class Tags {
     this.tags = Object.create(null, {});
     this.alias = Object.create(null, {});
     this.multiBlockAlias = Object.create(null, {});
+    this.blockTags = Object.create(null, {});
     this.allowed_globals = [];
 
     /* These tags are hardcoded and are essential for the functioning of
@@ -69,7 +74,7 @@ export default class Tags {
   }
 
   add_tag(tag: AnyTag, allowed_as_global: boolean = false) {
-    if (this.tags[tag.name] || this.alias[tag.name] || this.multiBlockAlias[tag.name]) {
+    if (this.tags[tag.name] || this.alias[tag.name] || this.multiBlockAlias[tag.name] || this.blockTags[tag.name]) {
       throw new Error(`The '@${tag.name}' tag already exists.`);
     }
 
@@ -77,6 +82,14 @@ export default class Tags {
       this.multiBlockAlias[tag.name] = tag;
     } else if (tag instanceof AliasTag) {
       this.alias[tag.name] = tag;
+    } else if (tag instanceof BlockTag) {
+      this.blockTags[tag.name] = tag;
+      // Also add to tags so it can be processed normally after preprocessing
+      this.tags[tag.name] = tag;
+
+      if (allowed_as_global) {
+        this.allowed_globals.push(tag.name);
+      }
     } else {
       this.tags[tag.name] = tag;
 
@@ -84,6 +97,60 @@ export default class Tags {
         this.allowed_globals.push(tag.name);
       }
     }
+  }
+
+  /**
+   * Preprocesses block content to convert paired block tags (like @code...@code)
+   * into single tags with captured content (like @code captured_content).
+   * @param content The uncommented block content
+   * @param path The file path (for error messages)
+   * @param firstLine The first line number of the block
+   * @returns The preprocessed content with block tags converted
+   */
+  private preprocessBlockTags(content: string, path: string, firstLine: number): string {
+    let result = content;
+
+    // Process each registered block tag
+    for (const tagName in this.blockTags) {
+      // Regex to find paired @tagName markers and capture content between them
+      // The pattern matches: @tagName (with optional trailing whitespace/newline)
+      // followed by content, followed by @tagName
+      const blockTagRe = new RegExp(
+        `@${tagName}(?: |\\t)*[\\n\\r\\u2028\\u2029]([\\s\\S]*?)@${tagName}(?:\\s|$)`,
+        "gm"
+      );
+
+      let match;
+      while ((match = blockTagRe.exec(result)) !== null) {
+        const capturedContent = match[1];
+        const lines = capturedContent.split(/[\n\r\u2028\u2029]/);
+
+        // Find the minimum indentation (excluding empty lines)
+        let minIndent = Infinity;
+        for (const line of lines) {
+          if (line.trim().length > 0) {
+            const leadingSpaces = line.match(/^(?: |\t)*/)?.[0].length ?? 0;
+            minIndent = Math.min(minIndent, leadingSpaces);
+          }
+        }
+        if (minIndent === Infinity) minIndent = 0;
+
+        // Remove the common minimum indentation from all lines
+        const trimmedContent = lines
+          .map(line => line.substring(minIndent))
+          .join("\n")
+          .trim();
+
+        // Replace the paired tags with a single tag containing the captured content
+        const replacement = `@${tagName} ${trimmedContent}`;
+        result = result.substring(0, match.index) + replacement + result.substring(match.index + match[0].length);
+
+        // Reset regex lastIndex since we modified the string
+        blockTagRe.lastIndex = match.index + replacement.length;
+      }
+    }
+
+    return result;
   }
 
   private find_and_add_tags(
@@ -145,7 +212,9 @@ export default class Tags {
         uncomment_re,
         "",
       );
-      this.find_and_add_tags(path, block, match.line, uncomment_block);
+      // Preprocess block tags (like @code...@code) before regular tag processing
+      const preprocessed_block = this.preprocessBlockTags(uncomment_block, path, match.line);
+      this.find_and_add_tags(path, block, match.line, preprocessed_block);
 
       if (!block["name"] && match.groups?.name) {
         this.find_and_add_tags(

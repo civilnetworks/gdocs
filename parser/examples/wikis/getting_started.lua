@@ -14,6 +14,14 @@
 -- local function example()
 --     print("Hello, World!")
 -- end
+-- @code
+--
+-- @text Here is another example:
+-- @code
+-- local x = 10
+-- local y = 20
+-- print(x + y)
+-- @code
 --
 -- @header Another Section
 -- @text This is another section with more text.
