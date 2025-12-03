@@ -3,5 +3,6 @@ import SelectorTag from "../classes/Tags/SelectorTag.ts";
 import BooleanTag from "../classes/Tags/BooleanTag.ts";
 import AliasTag from "../classes/Tags/AliasTag.ts";
 import DescriptionTag from "../classes/Tags/DescriptionTag.ts";
+import MultiBlockAliasTag from "../classes/Tags/MultiBlockAliasTag.ts";
 
-export type AnyTag = Tag | SelectorTag | BooleanTag | AliasTag | DescriptionTag;
+export type AnyTag = Tag | SelectorTag | BooleanTag | AliasTag | DescriptionTag | MultiBlockAliasTag;
