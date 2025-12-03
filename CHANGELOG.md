@@ -61,3 +61,7 @@
 ## Version 0.1.1
 
 - Bump to deno 1.41.0 to smaller binaries
+
+## Version 1.0.1
+
+- Add @accessor
