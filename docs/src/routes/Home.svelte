@@ -19,7 +19,7 @@
 </script>
 
 <div class:loaded>
-  <img src="logo.svg" alt="Logo" />
+  <img src="cn_logo_transparent.png" alt="Logo" />
   <h1>{title}</h1>
 </div>
 

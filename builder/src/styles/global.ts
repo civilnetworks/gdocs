@@ -20,7 +20,7 @@ export const GlobalStyles = createGlobalStyle`
 	}
 
 	body {
-		font-family: 'Roboto', sans-serif;
+		font-family: "DM Sans", sans-serif;
 		font-size: 1.6rem;
 		font-weight: normal;
 		letter-spacing: 0.05rem;
