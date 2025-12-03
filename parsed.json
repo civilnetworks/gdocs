@@ -29,6 +29,18 @@
                     "deprecated": true,
                     "stub": true
                 },
+                "Stack": {
+                    "name": "Stack",
+                    "description": "Returns a new Stack object",
+                    "item": "function",
+                    "returns": [
+                        {
+                            "type": "Stack",
+                            "description": "A brand new stack object."
+                        }
+                    ],
+                    "realm": "shared"
+                },
                 "sKore.PersistentData": {
                     "name": "sKore.PersistentData",
                     "description": "Creates a PersistentData using the given file.",
@@ -41,18 +53,6 @@
                         }
                     ],
                     "realm": "shared"
-                },
-                "Stack": {
-                    "name": "Stack",
-                    "description": "Returns a new Stack object",
-                    "item": "function",
-                    "returns": [
-                        {
-                            "type": "Stack",
-                            "description": "A brand new stack object."
-                        }
-                    ],
-                    "realm": "shared"
                 }
             },
             "item": "category"
@@ -61,45 +61,6 @@
             "name": "Classes",
             "pageType": "function",
             "subcategories": {
-                "PersistentData": {
-                    "name": "PersistentData",
-                    "pageType": "function",
-                    "subcategories": {
-                        "PersistentData:load": {
-                            "name": "PersistentData:load",
-                            "description": "Loads/reloads data from the data file.",
-                            "item": "function",
-                            "returns": [
-                                {
-                                    "type": "PersistentData",
-                                    "description": "Returns itself."
-                                }
-                            ],
-                            "realm": "shared"
-                        },
-                        "PersistentData:save": {
-                            "name": "PersistentData:save",
-                            "description": "Stores data in the data file.",
-                            "item": "function",
-                            "returns": [
-                                {
-                                    "type": "PersistentData",
-                                    "description": "Returns itself."
-                                }
-                            ],
-                            "realm": "shared"
-                        }
-                    },
-                    "description": "Used to store persistent data between different sessions and servers.",
-                    "fields": [
-                        {
-                            "type": "string",
-                            "key": "path",
-                            "description": "Path of the file the data is stored in."
-                        }
-                    ],
-                    "item": "category"
-                },
                 "Stack": {
                     "name": "Stack",
                     "pageType": "function",
@@ -156,6 +117,45 @@
                     },
                     "description": "An object returned by Stack().\n\nLike a Lua table, a Stack is a container. It follows the principle of LIFO\n(last in, first out).\n\nThe Stack works like a stack of papers: the first page you put down (push)\nwill be the last one you remove (pop). That also means that the last page you\nput down, will be the first to be removed.",
                     "item": "category"
+                },
+                "PersistentData": {
+                    "name": "PersistentData",
+                    "pageType": "function",
+                    "subcategories": {
+                        "PersistentData:load": {
+                            "name": "PersistentData:load",
+                            "description": "Loads/reloads data from the data file.",
+                            "item": "function",
+                            "returns": [
+                                {
+                                    "type": "PersistentData",
+                                    "description": "Returns itself."
+                                }
+                            ],
+                            "realm": "shared"
+                        },
+                        "PersistentData:save": {
+                            "name": "PersistentData:save",
+                            "description": "Stores data in the data file.",
+                            "item": "function",
+                            "returns": [
+                                {
+                                    "type": "PersistentData",
+                                    "description": "Returns itself."
+                                }
+                            ],
+                            "realm": "shared"
+                        }
+                    },
+                    "description": "Used to store persistent data between different sessions and servers.",
+                    "fields": [
+                        {
+                            "type": "string",
+                            "key": "path",
+                            "description": "Path of the file the data is stored in."
+                        }
+                    ],
+                    "item": "category"
                 }
             },
             "item": "category"
@@ -164,6 +164,157 @@
             "name": "Libraries",
             "pageType": "function",
             "subcategories": {
+                "player": {
+                    "name": "player",
+                    "pageType": "function",
+                    "subcategories": {
+                        "player.GetAll": {
+                            "name": "player.GetAll",
+                            "description": "Gets all the current players in the server (not including connecting\nclients).",
+                            "item": "function",
+                            "returns": [
+                                {
+                                    "type": "table",
+                                    "description": "All Players currently in the server."
+                                }
+                            ],
+                            "realm": "shared"
+                        },
+                        "player.GetBots": {
+                            "name": "player.GetBots",
+                            "description": "Returns a table of all bots on the server.",
+                            "item": "function",
+                            "returns": [
+                                {
+                                    "type": "table",
+                                    "description": "A table only containing bots ( AI / non human players )"
+                                }
+                            ],
+                            "realm": "shared"
+                        },
+                        "player.GetByAccountID": {
+                            "name": "player.GetByAccountID",
+                            "description": "Gets the player with the specified AccountID.",
+                            "item": "function",
+                            "parameters": [
+                                {
+                                    "type": "number",
+                                    "name": "accountID",
+                                    "description": "The Player:AccountID to find the player by."
+                                }
+                            ],
+                            "returns": [
+                                {
+                                    "type": "Player",
+                                    "description": "Player if one is found, false otherwise"
+                                }
+                            ],
+                            "realm": "shared"
+                        },
+                        "player.GetByID": {
+                            "name": "player.GetByID",
+                            "description": "Gets the player with the specified connection ID.\n\nConnection ID can be retrieved via gameevent.Listen events.\n\nFor a function that returns a player based on their Entity:EntIndex, see\nEntity.\n\nFor a function that returns a player based on their Player:UserID, see\nPlayer.",
+                            "item": "function",
+                            "parameters": [
+                                {
+                                    "type": "number",
+                                    "name": "connectionID",
+                                    "description": "The connection ID to find the player by."
+                                }
+                            ],
+                            "returns": [
+                                {
+                                    "type": "Player|nil",
+                                    "description": "Player if one is found, nil otherwise."
+                                }
+                            ],
+                            "realm": "shared"
+                        },
+                        "player.GetBySteamID": {
+                            "name": "player.GetBySteamID",
+                            "description": "Gets the player with the specified SteamID.",
+                            "item": "function",
+                            "parameters": [
+                                {
+                                    "type": "string",
+                                    "name": "steamID",
+                                    "description": "The Player:SteamID to find the player by."
+                                }
+                            ],
+                            "returns": [
+                                {
+                                    "type": "Player",
+                                    "description": "Player if one is found, false otherwise."
+                                }
+                            ],
+                            "realm": "shared"
+                        },
+                        "player.GetBySteamID64": {
+                            "name": "player.GetBySteamID64",
+                            "description": "Gets the player with the specified SteamID64.",
+                            "item": "function",
+                            "parameters": [
+                                {
+                                    "type": "string|number",
+                                    "name": "steamID64",
+                                    "description": "The Player:SteamID64 to find the player by."
+                                }
+                            ],
+                            "returns": [
+                                {
+                                    "type": "Player|boolean",
+                                    "description": "Player if one is found, false otherwise."
+                                }
+                            ],
+                            "realm": "shared"
+                        },
+                        "player.GetByUniqueID": {
+                            "name": "player.GetByUniqueID",
+                            "description": "Gets the player with the specified uniqueID (not recommended way to identify\nplayers).",
+                            "item": "function",
+                            "parameters": [
+                                {
+                                    "type": "string",
+                                    "name": "uniqueID",
+                                    "description": "The Player:UniqueID to find the player by."
+                                }
+                            ],
+                            "returns": [
+                                {
+                                    "type": "Player|boolean",
+                                    "description": "Player if one is found, false otherwise."
+                                }
+                            ],
+                            "realm": "shared"
+                        },
+                        "player.GetCount": {
+                            "name": "player.GetCount",
+                            "description": "Gives you the player count. Similar to #player.GetAll but with much better\nperformance.",
+                            "item": "function",
+                            "returns": [
+                                {
+                                    "type": "number",
+                                    "description": "Number of players."
+                                }
+                            ],
+                            "realm": "shared"
+                        },
+                        "player.GetHumans": {
+                            "name": "player.GetHumans",
+                            "description": "Returns a table of all human ( non bot/AI ) players.\n\nUnlike player.GetAll, this does not include bots.",
+                            "item": "function",
+                            "returns": [
+                                {
+                                    "type": "table",
+                                    "description": "A table of all human ( non bot/AI ) players."
+                                }
+                            ],
+                            "realm": "shared"
+                        }
+                    },
+                    "description": "The player library is used to get the Lua objects that represent players\nin-game.",
+                    "item": "category"
+                },
                 "cam": {
                     "name": "cam",
                     "pageType": "function",
@@ -388,53 +539,6 @@
                     "description": "This directs all drawing to be done to a certain 2D or 3D plane or position,\nuntil the corresponding \"End\" function is called.\nThe matrix functions exist, but are mostly unusable unless you're familiar\nwith the source engine's layout for each aspect.",
                     "item": "category"
                 },
-                "resource": {
-                    "name": "resource",
-                    "pageType": "function",
-                    "subcategories": {
-                        "resource.AddFile": {
-                            "name": "resource.AddFile",
-                            "description": "Adds the specified and all related files to the files the client should\ndownload.\n\nFor convenience, this function will automatically add any other files that\nare related to the selected one, and throw an error if it can't find them.\nFor example, a .vmt file will automatically add the .vtf with the same name,\nand a .mdl file will automatically add all .vvd, .ani, .dx80.vtx, .dx90.vtx,\n.sw.vtx, .phy and .jpg files with the same name, with a separate error for\neach missing file.\n\nIf you do not want it to do this, use resource.AddSingleFile.",
-                            "item": "function",
-                            "parameters": [
-                                {
-                                    "type": "string",
-                                    "name": "path",
-                                    "description": "Virtual path of the file to be added, relative to garrysmod/. Do not add .bz2 to the filepath. Do not put gamemodes/*gamemodename*/content/ or addons/<*addonname*/ into the path."
-                                }
-                            ],
-                            "realm": "server"
-                        },
-                        "resource.AddSingleFile": {
-                            "name": "resource.AddSingleFile",
-                            "description": "Adds the specified file to the files the client should download.\n\nIf you wish to add textures or models, consider using resource.AddFile to\nadd all the files required for a texture/model.",
-                            "item": "function",
-                            "parameters": [
-                                {
-                                    "type": "string",
-                                    "name": "path",
-                                    "description": "Path of the file to be added, relative to garrysmod/"
-                                }
-                            ],
-                            "realm": "server"
-                        },
-                        "resource.AddWorkshop": {
-                            "name": "resource.AddWorkshop",
-                            "description": "Adds a workshop addon for the client to download before entering the server.\n\nHaving the raw files from a workshop item does not count as having already\ndownloaded it.\nSo players who previously downloaded a map through Fast Download will have\nto re-download it if you use the workshop.\n\nYou should try to only add addons that have custom content ( models, sounds,\netc ).\n\nGamemodes that are workshop enabled are automatically added to this list -\nso there's no need to add them.\n\nThe server's current map is also automatically added, if it is loaded from a\nworkshop addon.",
-                            "item": "function",
-                            "parameters": [
-                                {
-                                    "type": "string",
-                                    "name": "workshopid",
-                                    "description": "The workshop id of the file. This cannot be a collection."
-                                }
-                            ],
-                            "realm": "server"
-                        }
-                    },
-                    "description": "The resource library is used to control what files are sent to clients who\njoin a server, this includes models, materials, sounds, text files but not\nLua files.",
-                    "item": "category"
-                },
                 "achievements": {
                     "name": "achievements",
                     "pageType": "function",
@@ -615,155 +719,51 @@
                     "description": "This library is used internally by Garry's Mod to help keep track of\nachievement progress and unlock the appropriate achievements once a certain\nnumber is reached.",
                     "item": "category"
                 },
-                "player": {
-                    "name": "player",
+                "resource": {
+                    "name": "resource",
                     "pageType": "function",
                     "subcategories": {
-                        "player.GetAll": {
-                            "name": "player.GetAll",
-                            "description": "Gets all the current players in the server (not including connecting\nclients).",
-                            "item": "function",
-                            "returns": [
-                                {
-                                    "type": "table",
-                                    "description": "All Players currently in the server."
-                                }
-                            ],
-                            "realm": "shared"
-                        },
-                        "player.GetBots": {
-                            "name": "player.GetBots",
-                            "description": "Returns a table of all bots on the server.",
-                            "item": "function",
-                            "returns": [
-                                {
-                                    "type": "table",
-                                    "description": "A table only containing bots ( AI / non human players )"
-                                }
-                            ],
-                            "realm": "shared"
-                        },
-                        "player.GetByAccountID": {
-                            "name": "player.GetByAccountID",
-                            "description": "Gets the player with the specified AccountID.",
-                            "item": "function",
-                            "parameters": [
-                                {
-                                    "type": "number",
-                                    "name": "accountID",
-                                    "description": "The Player:AccountID to find the player by."
-                                }
-                            ],
-                            "returns": [
-                                {
-                                    "type": "Player",
-                                    "description": "Player if one is found, false otherwise"
-                                }
-                            ],
-                            "realm": "shared"
-                        },
-                        "player.GetByID": {
-                            "name": "player.GetByID",
-                            "description": "Gets the player with the specified connection ID.\n\nConnection ID can be retrieved via gameevent.Listen events.\n\nFor a function that returns a player based on their Entity:EntIndex, see\nEntity.\n\nFor a function that returns a player based on their Player:UserID, see\nPlayer.",
-                            "item": "function",
-                            "parameters": [
-                                {
-                                    "type": "number",
-                                    "name": "connectionID",
-                                    "description": "The connection ID to find the player by."
-                                }
-                            ],
-                            "returns": [
-                                {
-                                    "type": "Player|nil",
-                                    "description": "Player if one is found, nil otherwise."
-                                }
-                            ],
-                            "realm": "shared"
-                        },
-                        "player.GetBySteamID": {
-                            "name": "player.GetBySteamID",
-                            "description": "Gets the player with the specified SteamID.",
+                        "resource.AddFile": {
+                            "name": "resource.AddFile",
+                            "description": "Adds the specified and all related files to the files the client should\ndownload.\n\nFor convenience, this function will automatically add any other files that\nare related to the selected one, and throw an error if it can't find them.\nFor example, a .vmt file will automatically add the .vtf with the same name,\nand a .mdl file will automatically add all .vvd, .ani, .dx80.vtx, .dx90.vtx,\n.sw.vtx, .phy and .jpg files with the same name, with a separate error for\neach missing file.\n\nIf you do not want it to do this, use resource.AddSingleFile.",
                             "item": "function",
                             "parameters": [
                                 {
                                     "type": "string",
-                                    "name": "steamID",
-                                    "description": "The Player:SteamID to find the player by."
+                                    "name": "path",
+                                    "description": "Virtual path of the file to be added, relative to garrysmod/. Do not add .bz2 to the filepath. Do not put gamemodes/*gamemodename*/content/ or addons/<*addonname*/ into the path."
                                 }
                             ],
-                            "returns": [
-                                {
-                                    "type": "Player",
-                                    "description": "Player if one is found, false otherwise."
-                                }
-                            ],
-                            "realm": "shared"
+                            "realm": "server"
                         },
-                        "player.GetBySteamID64": {
-                            "name": "player.GetBySteamID64",
-                            "description": "Gets the player with the specified SteamID64.",
-                            "item": "function",
-                            "parameters": [
-                                {
-                                    "type": "string|number",
-                                    "name": "steamID64",
-                                    "description": "The Player:SteamID64 to find the player by."
-                                }
-                            ],
-                            "returns": [
-                                {
-                                    "type": "Player|boolean",
-                                    "description": "Player if one is found, false otherwise."
-                                }
-                            ],
-                            "realm": "shared"
-                        },
-                        "player.GetByUniqueID": {
-                            "name": "player.GetByUniqueID",
-                            "description": "Gets the player with the specified uniqueID (not recommended way to identify\nplayers).",
+                        "resource.AddSingleFile": {
+                            "name": "resource.AddSingleFile",
+                            "description": "Adds the specified file to the files the client should download.\n\nIf you wish to add textures or models, consider using resource.AddFile to\nadd all the files required for a texture/model.",
                             "item": "function",
                             "parameters": [
                                 {
                                     "type": "string",
-                                    "name": "uniqueID",
-                                    "description": "The Player:UniqueID to find the player by."
+                                    "name": "path",
+                                    "description": "Path of the file to be added, relative to garrysmod/"
                                 }
                             ],
-                            "returns": [
-                                {
-                                    "type": "Player|boolean",
-                                    "description": "Player if one is found, false otherwise."
-                                }
-                            ],
-                            "realm": "shared"
+                            "realm": "server"
                         },
-                        "player.GetCount": {
-                            "name": "player.GetCount",
-                            "description": "Gives you the player count. Similar to #player.GetAll but with much better\nperformance.",
+                        "resource.AddWorkshop": {
+                            "name": "resource.AddWorkshop",
+                            "description": "Adds a workshop addon for the client to download before entering the server.\n\nHaving the raw files from a workshop item does not count as having already\ndownloaded it.\nSo players who previously downloaded a map through Fast Download will have\nto re-download it if you use the workshop.\n\nYou should try to only add addons that have custom content ( models, sounds,\netc ).\n\nGamemodes that are workshop enabled are automatically added to this list -\nso there's no need to add them.\n\nThe server's current map is also automatically added, if it is loaded from a\nworkshop addon.",
                             "item": "function",
-                            "returns": [
+                            "parameters": [
                                 {
-                                    "type": "number",
-                                    "description": "Number of players."
+                                    "type": "string",
+                                    "name": "workshopid",
+                                    "description": "The workshop id of the file. This cannot be a collection."
                                 }
                             ],
-                            "realm": "shared"
-                        },
-                        "player.GetHumans": {
-                            "name": "player.GetHumans",
-                            "description": "Returns a table of all human ( non bot/AI ) players.\n\nUnlike player.GetAll, this does not include bots.",
-                            "item": "function",
-                            "returns": [
-                                {
-                                    "type": "table",
-                                    "description": "A table of all human ( non bot/AI ) players."
-                                }
-                            ],
-                            "realm": "shared"
+                            "realm": "server"
                         }
                     },
-                    "description": "The player library is used to get the Lua objects that represent players\nin-game.",
+                    "description": "The resource library is used to control what files are sent to clients who\njoin a server, this includes models, materials, sounds, text files but not\nLua files.",
                     "item": "category"
                 }
             },
@@ -773,6 +773,88 @@
             "name": "Hooks",
             "pageType": "function",
             "subcategories": {
+                "GM2": {
+                    "name": "GM2",
+                    "pageType": "function",
+                    "subcategories": {
+                        "ChatText": {
+                            "name": "ChatText",
+                            "description": "Called when the player dies.",
+                            "item": "function",
+                            "parameters": [
+                                {
+                                    "type": "number",
+                                    "name": "index",
+                                    "description": "The index of the player."
+                                },
+                                {
+                                    "type": "string",
+                                    "name": "name",
+                                    "description": "The name of the player."
+                                },
+                                {
+                                    "type": "string",
+                                    "name": "text",
+                                    "description": "The text that is being sent."
+                                },
+                                {
+                                    "type": "string",
+                                    "name": "type",
+                                    "description": "Chat filter type."
+                                }
+                            ],
+                            "returns": [
+                                {
+                                    "type": "boolean",
+                                    "description": "Return true to suppress the chat message."
+                                }
+                            ],
+                            "realm": "client"
+                        },
+                        "KeyPress": {
+                            "name": "KeyPress",
+                            "description": "Called whenever a player pressed a key included within the IN keys.\n\nFor a more general purpose function that handles all kinds of input,\nsee GM:PlayerButtonDown.",
+                            "item": "function",
+                            "parameters": [
+                                {
+                                    "type": "Player",
+                                    "name": "ply",
+                                    "description": "The player pressing the key. If running client-side, this will always be LocalPlayer."
+                                },
+                                {
+                                    "type": "number",
+                                    "name": "key",
+                                    "description": "The key that the player pressed using Enums/IN."
+                                }
+                            ],
+                            "realm": "shared"
+                        },
+                        "PlayerAuthed": {
+                            "name": "PlayerAuthed",
+                            "description": "Called once when the player is authenticated.",
+                            "item": "function",
+                            "parameters": [
+                                {
+                                    "type": "Player",
+                                    "name": "ply",
+                                    "description": "The player."
+                                },
+                                {
+                                    "type": "string",
+                                    "name": "steamid",
+                                    "description": "The player's SteamID."
+                                },
+                                {
+                                    "type": "string",
+                                    "name": "uniqueid",
+                                    "description": "The player's UniqueID."
+                                }
+                            ],
+                            "realm": "server"
+                        }
+                    },
+                    "item": "category"
+                },
                 "GM": {
                     "name": "GM",
                     "pageType": "function",
@@ -854,88 +936,6 @@
                         }
                     },
                     "description": "A list of hooks available in player classes.",
-                    "item": "category"
-                },
-                "GM2": {
-                    "name": "GM2",
-                    "pageType": "function",
-                    "subcategories": {
-                        "ChatText": {
-                            "name": "ChatText",
-                            "description": "Called when the player dies.",
-                            "item": "function",
-                            "parameters": [
-                                {
-                                    "type": "number",
-                                    "name": "index",
-                                    "description": "The index of the player."
-                                },
-                                {
-                                    "type": "string",
-                                    "name": "name",
-                                    "description": "The name of the player."
-                                },
-                                {
-                                    "type": "string",
-                                    "name": "text",
-                                    "description": "The text that is being sent."
-                                },
-                                {
-                                    "type": "string",
-                                    "name": "type",
-                                    "description": "Chat filter type."
-                                }
-                            ],
-                            "returns": [
-                                {
-                                    "type": "boolean",
-                                    "description": "Return true to suppress the chat message."
-                                }
-                            ],
-                            "realm": "client"
-                        },
-                        "KeyPress": {
-                            "name": "KeyPress",
-                            "description": "Called whenever a player pressed a key included within the IN keys.\n\nFor a more general purpose function that handles all kinds of input,\nsee GM:PlayerButtonDown.",
-                            "item": "function",
-                            "parameters": [
-                                {
-                                    "type": "Player",
-                                    "name": "ply",
-                                    "description": "The player pressing the key. If running client-side, this will always be LocalPlayer."
-                                },
-                                {
-                                    "type": "number",
-                                    "name": "key",
-                                    "description": "The key that the player pressed using Enums/IN."
-                                }
-                            ],
-                            "realm": "shared"
-                        },
-                        "PlayerAuthed": {
-                            "name": "PlayerAuthed",
-                            "description": "Called once when the player is authenticated.",
-                            "item": "function",
-                            "parameters": [
-                                {
-                                    "type": "Player",
-                                    "name": "ply",
-                                    "description": "The player."
-                                },
-                                {
-                                    "type": "string",
-                                    "name": "steamid",
-                                    "description": "The player's SteamID."
-                                },
-                                {
-                                    "type": "string",
-                                    "name": "uniqueid",
-                                    "description": "The player's UniqueID."
-                                }
-                            ],
-                            "realm": "server"
-                        }
-                    },
                     "item": "category"
                 }
             },
@@ -1112,34 +1112,6 @@
             "name": "Structs",
             "pageType": "table",
             "subcategories": {
-                "Color": {
-                    "name": "Color",
-                    "description": "Table created by the Color function and used in various situations.",
-                    "item": "table",
-                    "fields": [
-                        {
-                            "type": "number",
-                            "key": "r",
-                            "description": "The red channel."
-                        },
-                        {
-                            "type": "number",
-                            "key": "g",
-                            "description": "The red channel."
-                        },
-                        {
-                            "type": "number",
-                            "key": "b",
-                            "description": "The red channel."
-                        },
-                        {
-                            "type": "number",
-                            "key": "a",
-                            "description": "The alpha channel."
-                        }
-                    ],
-                    "realm": "client"
-                },
                 "AmmoData": {
                     "name": "AmmoData",
                     "description": "Table structure that describes a Source Engine ammo type.",
@@ -1197,6 +1169,34 @@
                         }
                     ],
                     "realm": "shared"
+                },
+                "Color": {
+                    "name": "Color",
+                    "description": "Table created by the Color function and used in various situations.",
+                    "item": "table",
+                    "fields": [
+                        {
+                            "type": "number",
+                            "key": "r",
+                            "description": "The red channel."
+                        },
+                        {
+                            "type": "number",
+                            "key": "g",
+                            "description": "The red channel."
+                        },
+                        {
+                            "type": "number",
+                            "key": "b",
+                            "description": "The red channel."
+                        },
+                        {
+                            "type": "number",
+                            "key": "a",
+                            "description": "The alpha channel."
+                        }
+                    ],
+                    "realm": "client"
                 }
             },
             "item": "category"
