@@ -6,6 +6,7 @@ import MultiBlockAliasTag from "../Tags/MultiBlockAliasTag.ts";
 import SelectorTag from "../Tags/SelectorTag.ts";
 import Tag from "../Tags/Tag.ts";
 import BooleanTag from "../Tags/BooleanTag.ts";
+import BlockTag from "../Tags/BlockTag.ts";
 
 export interface ProjectStructure {
   [key: string]: Category;
@@ -42,7 +43,7 @@ export default class CategoryProject {
     /* Wiki-specific tags */
     this.add_tag(new Tag("header", 1, false));
     this.add_tag(new Tag("text", 1, false, false, true));
-    this.add_tag(new Tag("code", 1, false, false, true));
+    this.add_tag(new BlockTag("code", false));
     this.add_tag(new Tag("br", 0, false));
     this.add_tag(
       new AliasTag("hook", 2, ([subcategory, name]) => [

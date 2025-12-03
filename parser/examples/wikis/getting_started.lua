@@ -11,9 +11,17 @@
 -- @header Example Code
 -- @text Here is an example of how to use the library:
 -- @code
--- local function example()
---     print("Hello, World!")
--- end
+local function example()
+    print("Hello, World!")
+end
+-- @code
+--
+-- @text Here is another example:
+-- @code
+local x = 10
+local y = 20
+print(x + y)
+-- @code
 --
 -- @header Another Section
 -- @text This is another section with more text.

@@ -1,6 +1,7 @@
 import { AnyTag } from "../../utils/types.ts";
 import AliasTag from "../Tags/AliasTag.ts";
 import MultiBlockAliasTag from "../Tags/MultiBlockAliasTag.ts";
+import BlockTag from "../Tags/BlockTag.ts";
 import { error_message, warning_message } from "../../utils/functions.ts";
 // import fs from "fs";
 import { find_all, MatchesArray } from "../../utils/regex.ts";
@@ -39,6 +40,8 @@ const trim_left_re = /^((?: |\t)*)/gm;
 const rich_trim_re = /^ /gm;
 const trim_right_re = /(.)(?: |\t)*[\n\r\u2028\u2029]((?!@\w+).)/g;
 const ignore_re = /@ignore/g;
+// Whitespace pattern used in regex construction
+const WHITESPACE_PATTERN = "(?: |\\t)*";
 // Base line number for synthetic blocks created by MultiBlockAliasTag
 // Uses a high number to avoid collision with actual source file line numbers
 const SYNTHETIC_LINE_NUMBER_BASE = 1_000_000;
@@ -52,6 +55,9 @@ export default class Tags {
   multiBlockAlias: {
     [key: string]: MultiBlockAliasTag;
   };
+  blockTags: {
+    [key: string]: BlockTag;
+  };
   allowed_globals: string[];
 
   constructor() {
@@ -59,6 +65,7 @@ export default class Tags {
     this.tags = Object.create(null, {});
     this.alias = Object.create(null, {});
     this.multiBlockAlias = Object.create(null, {});
+    this.blockTags = Object.create(null, {});
     this.allowed_globals = [];
 
     /* These tags are hardcoded and are essential for the functioning of
@@ -69,7 +76,7 @@ export default class Tags {
   }
 
   add_tag(tag: AnyTag, allowed_as_global: boolean = false) {
-    if (this.tags[tag.name] || this.alias[tag.name] || this.multiBlockAlias[tag.name]) {
+    if (this.tags[tag.name] || this.alias[tag.name] || this.multiBlockAlias[tag.name] || this.blockTags[tag.name]) {
       throw new Error(`The '@${tag.name}' tag already exists.`);
     }
 
@@ -77,6 +84,14 @@ export default class Tags {
       this.multiBlockAlias[tag.name] = tag;
     } else if (tag instanceof AliasTag) {
       this.alias[tag.name] = tag;
+    } else if (tag instanceof BlockTag) {
+      this.blockTags[tag.name] = tag;
+      // Also add to tags so it can be processed normally after preprocessing
+      this.tags[tag.name] = tag;
+
+      if (allowed_as_global) {
+        this.allowed_globals.push(tag.name);
+      }
     } else {
       this.tags[tag.name] = tag;
 
@@ -84,6 +99,73 @@ export default class Tags {
         this.allowed_globals.push(tag.name);
       }
     }
+  }
+
+  /**
+   * Preprocesses raw file content to convert paired block tags (like -- @code ... -- @code)
+   * into single tags with captured content. This runs BEFORE comment block extraction
+   * so it can capture actual uncommented code between the markers.
+   * @param content The raw file content
+   * @returns The preprocessed content with block tags converted
+   */
+  private preprocessFileBlockTags(content: string): string {
+    let result = content;
+
+    // Process each registered block tag
+    for (const tagName in this.blockTags) {
+      // Regex to match: -- @tagName (opening marker) ... -- @tagName (closing marker)
+      // Captures everything between the markers including actual code
+      const blockTagRe = new RegExp(
+        `^(${WHITESPACE_PATTERN})--${WHITESPACE_PATTERN}@${tagName}${WHITESPACE_PATTERN}$[\\n\\r\\u2028\\u2029]([\\s\\S]*?)^${WHITESPACE_PATTERN}--${WHITESPACE_PATTERN}@${tagName}${WHITESPACE_PATTERN}$`,
+        "gm"
+      );
+
+      // Collect all matches first to process in reverse order
+      const matches: { index: number; length: number; indent: string; capturedContent: string }[] = [];
+      let match;
+      while ((match = blockTagRe.exec(result)) !== null) {
+        matches.push({
+          index: match.index,
+          length: match[0].length,
+          indent: match[1], // Preserve the indentation of the opening marker
+          capturedContent: match[2],
+        });
+      }
+
+      // Process matches in reverse order to preserve indices
+      for (let i = matches.length - 1; i >= 0; i--) {
+        const { index, length, indent, capturedContent } = matches[i];
+        const lines = capturedContent.split(/[\n\r\u2028\u2029]/);
+
+        // Find the minimum indentation (excluding empty lines)
+        let minIndent = Infinity;
+        for (const line of lines) {
+          if (line.trim().length > 0) {
+            const leadingSpaces = line.match(/^(?: |\t)*/)?.[0].length ?? 0;
+            minIndent = Math.min(minIndent, leadingSpaces);
+          }
+        }
+        if (minIndent === Infinity) minIndent = 0;
+
+        // Remove the common minimum indentation from all lines and join with newlines
+        const trimmedContent = lines
+          .map(line => line.substring(minIndent))
+          .join("\n")
+          .trim();
+
+        // Replace the paired tags with a single commented tag containing the captured content
+        // Convert to a multiline comment format where each line is prefixed with --
+        // This ensures the code block stays within the comment block
+        const contentLines = trimmedContent.split("\n");
+        const replacement = `${indent}-- @${tagName} ${contentLines[0]}` +
+          (contentLines.length > 1
+            ? "\n" + contentLines.slice(1).map(line => `${indent}-- ${line}`).join("\n")
+            : "");
+        result = result.substring(0, index) + replacement + result.substring(index + length);
+      }
+    }
+
+    return result;
   }
 
   private find_and_add_tags(
@@ -125,9 +207,14 @@ export default class Tags {
     const blocks: DocBlock[] = [];
     const decoder = new TextDecoder("utf-8");
 
-    const file_content = decoder.decode(Deno
+    let file_content = decoder.decode(Deno
       .readFileSync(path))
       .replace(carriage_re, "");
+    
+    // Preprocess block tags (like -- @code ... -- @code) BEFORE extracting comment blocks
+    // This allows capturing actual code between the markers
+    file_content = this.preprocessFileBlockTags(file_content);
+    
     const block_matches = find_all(block_re, file_content);
     // Counter for generating unique synthetic line numbers for multi-block aliases
     let syntheticLineCounter = SYNTHETIC_LINE_NUMBER_BASE;
