@@ -39,6 +39,9 @@ const trim_left_re = /^((?: |\t)*)/gm;
 const rich_trim_re = /^ /gm;
 const trim_right_re = /(.)(?: |\t)*[\n\r\u2028\u2029]((?!@\w+).)/g;
 const ignore_re = /@ignore/g;
+// Base line number for synthetic blocks created by MultiBlockAliasTag
+// Uses a high number to avoid collision with actual source file line numbers
+const SYNTHETIC_LINE_NUMBER_BASE = 1_000_000;
 export default class Tags {
   tags: {
     [key: string]: AnyTag;
@@ -127,7 +130,7 @@ export default class Tags {
       .replace(carriage_re, "");
     const block_matches = find_all(block_re, file_content);
     // Counter for generating unique synthetic line numbers for multi-block aliases
-    let syntheticLineCounter = 1_000_000;
+    let syntheticLineCounter = SYNTHETIC_LINE_NUMBER_BASE;
 
     block_matches.forEach((match) => {
       /* Object with no prototype to avoid name collisions. */
@@ -187,8 +190,9 @@ export default class Tags {
                   );
                 });
                 blocks.push(new_block);
-                // Create a synthetic match object with unique line number
-                // Use a counter to generate unique integer line numbers that won't conflict with real lines
+                // Create a synthetic match object with unique line number for block enumeration.
+                // Only the 'line' property is used for block indexing, so we spread the original
+                // match properties to maintain interface compatibility while overriding line.
                 const synthetic_match = {
                   ...block_matches[blockIndex],
                   line: syntheticLineCounter++,

@@ -14,7 +14,8 @@ export default class MultiBlockAliasTag extends Tag {
     public readonly callback: MultiBlockAliasCallback,
     unique: boolean = true,
   ) {
-    super(name, argsCount, unique, true);
+    // Pass true for an_alias parameter to mark this tag as an alias type
+    super(name, argsCount, unique, /* an_alias */ true);
   }
 
   /**

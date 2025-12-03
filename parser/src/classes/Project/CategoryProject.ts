@@ -47,16 +47,19 @@ export default class CategoryProject {
       ]),
     );
     this.add_tag(
-      new MultiBlockAliasTag("accessor", 4, ([table, accessor, type, description]) => [
-        [
-          `@name ${table}:Get${accessor}`,
-          `@treturn ${type} ${description ?? ""}`,
-        ],
-        [
-          `@name ${table}:Set${accessor}`,
-          `@tparam ${type} value ${description ?? ""}`,
-        ],
-      ]),
+      new MultiBlockAliasTag("accessor", 4, ([table, accessor, type, description]) => {
+        const desc = description?.trim() || "";
+        return [
+          [
+            `@name ${table}:Get${accessor}`,
+            `@treturn ${type}${desc ? ` ${desc}` : ""}`,
+          ],
+          [
+            `@name ${table}:Set${accessor}`,
+            `@tparam ${type} value${desc ? ` ${desc}` : ""}`,
+          ],
+        ];
+      }),
     );
 
     /* Default category */
