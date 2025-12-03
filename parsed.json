@@ -1200,6 +1200,79 @@
                 }
             },
             "item": "category"
+        },
+        "wikis": {
+            "name": "Wikis",
+            "pageType": "wiki",
+            "subcategories": {
+                "Getting Started This wiki page explains how to get started with the project.\n": {
+                    "name": "Getting Started This wiki page explains how to get started with the project.\n",
+                    "item": "wiki",
+                    "content": [
+                        {
+                            "type": "header",
+                            "content": "Introduction"
+                        },
+                        {
+                            "type": "text",
+                            "content": "Welcome to the documentation. This guide will help you understand"
+                        },
+                        {
+                            "type": "text",
+                            "content": "how to use the wiki pages feature in gdocs."
+                        },
+                        {
+                            "type": "br",
+                            "content": ""
+                        },
+                        {
+                            "type": "text",
+                            "content": "Wiki pages allow you to create rich documentation with headers,"
+                        },
+                        {
+                            "type": "text",
+                            "content": "text paragraphs, and code examples.\n"
+                        },
+                        {
+                            "type": "header",
+                            "content": "Example Code"
+                        },
+                        {
+                            "type": "text",
+                            "content": "Here is an example of how to use the library:"
+                        },
+                        {
+                            "type": "code",
+                            "content": "local function example()\n    print(\"Hello, World!\")\nend\n"
+                        },
+                        {
+                            "type": "text",
+                            "content": "Here is another example:"
+                        },
+                        {
+                            "type": "code",
+                            "content": "local x = 10\nlocal y = 20\nprint(x + y)\n"
+                        },
+                        {
+                            "type": "header",
+                            "content": "Another Section"
+                        },
+                        {
+                            "type": "text",
+                            "content": "This is another section with more text."
+                        },
+                        {
+                            "type": "br",
+                            "content": ""
+                        },
+                        {
+                            "type": "text",
+                            "content": "After a break, we start a new paragraph."
+                        }
+                    ]
+                }
+            },
+            "item": "category"
         }
     },
     "title": "Documentation",
