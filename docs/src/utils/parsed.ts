@@ -4,6 +4,8 @@ export interface FunctionParameters {
   name: string;
   type: string;
   description: string;
+  optional?: boolean;
+  default?: string;
 }
 
 export interface FunctionReturns {
@@ -47,6 +49,7 @@ export interface Category {
   name: string;
   description?: string;
   fields?: FieldInfo[];
+  inherits?: string;
   subcategories: {
     [key: string]: ValidSubcategory;
   };

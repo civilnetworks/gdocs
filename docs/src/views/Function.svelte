@@ -78,6 +78,11 @@
           <p class="title">
             <GetTypes types={param.type} /><span>{" "}</span>
             <strong>{param.name}</strong>
+            {#if param.optional}<span class="opt-flag"
+                >{param.default
+                  ? `optional, defaults to ${param.default}`
+                  : "optional"}</span
+              >{/if}
           </p>
           <p>
             {@html marked(param.description)}
@@ -117,6 +122,18 @@
   .parameter-box {
     position: relative;
     margin-bottom: 2.4rem;
+  }
+
+  .parameter-box .opt-flag {
+    margin-left: 0.8rem;
+    padding: 0.1rem 0.6rem;
+    border-radius: 0.9rem;
+    font-size: 1.1rem;
+    font-style: italic;
+    white-space: nowrap;
+    color: var(--text-background-medium);
+    border: 1px solid var(--text-background-disabled);
+    vertical-align: 0.15rem;
   }
 
   .parameter-box > span {

@@ -49,6 +49,20 @@ export function get_multiple(block: DocBlock, tag_name: string): string[][] {
     : [];
 }
 
+/* Like get_multiple, but keeps the bracketed modifier alongside the args so
+   callers can tell '@tparam[opt]' from '@tparam'. */
+export function get_multiple_with_modifier(
+  block: DocBlock,
+  tag_name: string,
+): { args: string[]; modifier?: string }[] {
+  return block[tag_name]
+    ? block[tag_name].map((tag) => ({
+      args: tag.args as string[],
+      modifier: tag.modifier,
+    }))
+    : [];
+}
+
 export function create_list(array: string[]) {
   if (array.length === 1) {
     return array[0];

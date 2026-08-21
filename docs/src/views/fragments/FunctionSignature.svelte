@@ -40,7 +40,10 @@
     <span>(</span>
 
     {#each parameters as param, i}
-      <GetTypes types={param.type} list={true} /><span>{" " + param.name}</span>
+      <GetTypes types={param.type} list={true} /><span
+        class:optional={param.optional}>{" " + param.name}</span
+      >{#if param.default}<span class="default">{" = " + param.default}</span
+        >{/if}
       {parameters.length > 1 && i < parameters.length - 1 ? ", " : ""}
     {/each}
 
@@ -92,5 +95,14 @@
     display: inline-flex;
     white-space: pre;
     flex-flow: wrap;
+  }
+
+  .funct .optional {
+    font-style: italic;
+    opacity: 0.75;
+  }
+
+  .funct .default {
+    color: var(--codeBlocks-number, var(--codeBlocks-color));
   }
 </style>
