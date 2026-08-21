@@ -69,3 +69,21 @@
 ## Version 1.1.0
 
 - Add wiki attributes
+
+## Version 1.2.0
+
+- Add `@inherits <name>`, for recording which page a page derives from.
+  Panel and class pages now show their parent as a link: to that page when it
+  is documented, and to the Garry's Mod wiki when it is not, so an inheritance
+  chain can be followed by clicking through it.
+- Fix `@tparam[opt]` being silently swallowed into the description. A tag name
+  may now be followed by a bracketed modifier, so the LDoc-style optional
+  marker is recognised instead of ending the tag scan.
+- Parameters marked `[opt]` are now flagged optional in the docs, and
+  `[opt=<value>]` carries its default through to the signature.
+
+**⚠️ Behaviour change**
+
+Any tag name followed by `[` is now parsed as a tag. Text such as `@foo[bar]`
+that previously fell through to the description will now be reported as an
+unknown tag.
