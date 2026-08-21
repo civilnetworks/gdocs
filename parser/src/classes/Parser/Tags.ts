@@ -14,6 +14,9 @@ export interface TagInfo {
   match: string;
   from_alias: boolean;
   args?: string[];
+  /* The contents of a bracketed modifier, e.g. "opt" or "opt=5" for
+     '@tparam[opt]' / '@tparam[opt=5]'. */
+  modifier?: string;
 }
 
 export interface DocBlock {
@@ -29,9 +32,12 @@ export interface EnumeratedDockBlocks {
 const block_re =
   /^(?: |\t)*(?<block>(?:(?:--.*)(?:[\n\r\u2028\u2029](?: |\t)*--.*)*))(?:[\n\r\u2028\u2029](?: |\t)*function(?: |\t)+(?<name>(?:\w|\.|:)+)\()?/gm;
 
-/* Regex to find all the tags in a block. */
+/* Regex to find all the tags in a block.
+   A tag name may be followed by a bracketed modifier, as in '@tparam[opt]' or
+   '@tparam[opt=5]'. The modifier is captured separately so that the tag name
+   still resolves, and is exposed on the TagInfo. */
 const tags_re =
-  /(?:(?: |\t)*@(?<tag_name>\w+)(?![^ \t\n\r\u2028\u2029])(?:(?:.|[\n\r\u2028\u2029])(?!^(?: |\t)*@\w+))*)|(?:(?:.|[\n\r\u2028\u2029])(?!^(?: |\t)*@\w+))+/gm;
+  /(?:(?: |\t)*@(?<tag_name>\w+)(?:\[(?<modifier>[^\]\n\r\u2028\u2029]*)\])?(?![^ \t\n\r\u2028\u2029])(?:(?:.|[\n\r\u2028\u2029])(?!^(?: |\t)*@\w+))*)|(?:(?:.|[\n\r\u2028\u2029])(?!^(?: |\t)*@\w+))+/gm;
 
 /* Regex to trim spaces and carriage return characters */
 const carriage_re = /\r/g;
@@ -196,6 +202,7 @@ export default class Tags {
           .replace(trim_left_re, "")
           .replace(trim_right_re, "$1 $2"),
         from_alias: from_alias,
+        modifier: tag_match.groups?.modifier,
       };
 
       block[tag_name] = block[tag_name] ?? [];

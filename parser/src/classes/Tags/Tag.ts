@@ -15,7 +15,10 @@ export default class Tag {
     public readonly rich: boolean = false,
     public readonly optionalLastArg: boolean = false,
   ) {
-    const tagRe = `^(?: |\\t)*@${escape_regex(name)}`;
+    /* A bracketed modifier such as '[opt]' or '[opt=5]' may follow the tag
+       name. It is matched but not captured, so it never shifts the argument
+       list returned by process(); Tags exposes it as TagInfo.modifier. */
+    const tagRe = `^(?: |\\t)*@${escape_regex(name)}(?:\\[[^\\]]*\\])?`;
     if (argsCount == 0) {
       this.re = RegExp(tagRe + "$", "s");
     } else if (argsCount == 1) {

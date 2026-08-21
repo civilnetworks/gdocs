@@ -47,6 +47,12 @@
 </script>
 
 <Page title={category}>
+  {#if item.inherits}
+    <p class="inherits">
+      <span class="label">Inherits</span>
+      <GetTypes types={item.inherits} />
+    </p>
+  {/if}
   {#if description}
     <h5 class="section">Description</h5>
     <div class="section-container">
@@ -93,5 +99,21 @@
     flex-direction: column;
     margin-bottom: 1.5rem;
     margin-top: 2rem;
+  }
+
+  .inherits {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    margin: 1.2rem 0 0;
+    font-size: 1.4rem;
+    color: var(--text-background-medium);
+  }
+
+  .inherits .label {
+    font-size: 1.1rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--text-background-disabled);
   }
 </style>

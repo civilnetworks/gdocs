@@ -1,10 +1,16 @@
 import { DocBlock } from "../Parser/Tags.ts";
-import { get_multiple, get_unique } from "../../utils/functions.ts";
+import {
+  get_multiple,
+  get_multiple_with_modifier,
+  get_unique,
+} from "../../utils/functions.ts";
 
 export interface FunctionParameters {
   name: string;
   type: string;
   description: string;
+  optional?: boolean;
+  default?: string;
 }
 
 export interface FunctionReturns {
@@ -28,13 +34,24 @@ export default class FunctionPage {
     public readonly description?: string,
     block: DocBlock = {},
   ) {
-    const params: FunctionParameters[] = get_multiple(block, "tparam").map(
-      (param) => ({
-        type: param[0],
-        name: param[1],
-        description: param[2] ?? "",
-      }),
-    );
+    const params: FunctionParameters[] = get_multiple_with_modifier(
+      block,
+      "tparam",
+    ).map(({ args, modifier }) => {
+      /* "opt" marks the parameter optional; "opt=5" also gives its default. */
+      const optional = modifier !== undefined && /^opt\b/.test(modifier);
+      const [, defaultValue] = optional ? modifier!.split(/=(.*)/s) : [];
+
+      return {
+        type: args[0],
+        name: args[1],
+        description: args[2] ?? "",
+        optional: optional ? true : undefined,
+        default: defaultValue !== undefined && defaultValue !== ""
+          ? defaultValue
+          : undefined,
+      };
+    });
     this.parameters = params.length > 0 ? params : undefined;
     const returns: FunctionReturns[] = get_multiple(block, "treturn").map(
       (ret) => ({

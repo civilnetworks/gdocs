@@ -16,6 +16,7 @@ export default class Category {
   };
   description?: string;
   fields?: FieldInfo[];
+  inherits?: string;
   item: string;
 
   constructor(
@@ -37,6 +38,14 @@ export default class Category {
   set_fields(fields?: FieldInfo[]): this {
     if (!this.fields) {
       this.fields = fields;
+    }
+
+    return this;
+  }
+
+  set_inherits(inherits?: string): this {
+    if (!this.inherits) {
+      this.inherits = inherits;
     }
 
     return this;
@@ -127,6 +136,7 @@ export default class Category {
           description: field[2],
         }),
       );
+      const inherits = get_unique(block, "inherits");
 
       if (!structure[category].has_subcategory(subcategory)) {
         structure[category].add_subcategory(
@@ -140,6 +150,7 @@ export default class Category {
 
       sub.set_description(description != "" ? description : undefined);
       sub.set_fields(fields.length > 0 ? fields : undefined);
+      sub.set_inherits(inherits);
     };
   }
 
