@@ -1,366 +1,178 @@
 <script lang="ts">
-  import { getContext, onDestroy, onMount } from "svelte";
+  import { createEventDispatcher, onDestroy, tick } from "svelte";
   import { parsedData } from "../stores";
   import type { Category, ProjectStructure } from "../utils/parsed";
-  import { location, link } from "svelte-spa-router";
+  import { location } from "svelte-spa-router";
   import SubCategory from "./SubCategory.svelte";
   import clear_label from "../utils/clearLabel";
-  import SearchPane from "./SearchPane.svelte";
   import ItemLink from "./ItemLink.svelte";
+  import { focusTrap } from "../utils/focusTrap";
+
+  export let mobileOpen = false;
+  export let mobileTrigger: HTMLButtonElement | null = null;
+
+  const dispatch = createEventDispatcher<{ search: { trigger: HTMLButtonElement } }>();
 
   let tabs: [string, Category][] = [];
-  let loaded = false;
-
-  let visible: boolean = false;
-  let searchText: string = "";
-
   let project: ProjectStructure = {};
+  let expandedTab = "";
 
-  let menuOpen: boolean = true;
-  let urlTab: string = "";
+  $: routeTab = $location.split("/")[1] ?? "";
+  $: if (routeTab && project[routeTab]) expandedTab = routeTab;
+  $: if (!expandedTab && tabs.length) expandedTab = tabs[0][0];
 
-  $: activeTab =
-    project && urlTab && tabs.length > 0 && tabs[0].length > 0
-      ? project[urlTab]
-        ? urlTab
-        : tabs[0][0]
-      : "";
-
-  const unSub = parsedData.subscribe((d) => {
-    if (d) {
-      project = d.structure;
+  const unSub = parsedData.subscribe((data) => {
+    if (data) {
+      project = data.structure;
       tabs = Object.entries(project);
-      loaded = true;
     }
   });
 
-  const closeMenu = () => {
-    if (window.innerWidth <= 1000) {
-      menuOpen = false;
-    }
-  };
+  onDestroy(unSub);
 
-  onMount(() => {
-    urlTab = $location.split("/")[1] ?? "";
-    menuOpen = window.innerWidth > 1000 && urlTab !== "";
-  });
-
-  onDestroy(() => {
-    unSub();
-  });
-
-  // Quick search keypress
-
-  let shiftPressed = false;
-  let lastShiftTime = 0;
-
-  let shiftPressLock = false;
-
-  const handleKeyUp = (event: KeyboardEvent) => {
-    shiftPressLock = false;
-  };
-
-  const handleKeys = (event: KeyboardEvent) => {
-    if (visible) {
-      if (event.key === "Escape") {
-        visible = false;
-      }
-
-      return;
-    }
-
-    if (shiftPressLock) {
-      return;
-    }
-    shiftPressLock = true;
-
-    if (event.key === "Shift") {
-      const currentTime = Date.now();
-      if (shiftPressed && currentTime - lastShiftTime < 2000) {
-        visible = true;
-
-        shiftPressed = false;
-        lastShiftTime = 0;
-      } else {
-        shiftPressed = true;
-        lastShiftTime = currentTime;
+  const closeMobileMenu = async (restoreFocus = true) => {
+    if (window.innerWidth <= 900 && mobileOpen) {
+      mobileOpen = false;
+      if (restoreFocus) {
+        await tick();
+        mobileTrigger?.focus();
       }
     }
   };
 
-  const shortForcefully = (a: string, b: string) => {
-    if (a.startsWith("_") && !b.startsWith("_")) {
-      return 1; // starting with "_" to the end
-    } else if (!a.startsWith("_") && b.startsWith("_")) {
-      return -1; // NOT starting with "_" to the beginning
-    } else {
-      return a.localeCompare(b); // Sort alphabetically otherwise
+  const handleWindowKeydown = (event: KeyboardEvent) => {
+    if (event.key === "Escape" && mobileOpen) {
+      event.preventDefault();
+      closeMobileMenu();
     }
+  };
+
+  const openSearch = (event: MouseEvent) => {
+    const trigger = mobileOpen && mobileTrigger
+      ? mobileTrigger
+      : (event.currentTarget as HTMLButtonElement);
+    mobileOpen = false;
+    dispatch("search", { trigger });
+  };
+
+  const sortLabels = (a: string, b: string) => {
+    if (a.startsWith("_") && !b.startsWith("_")) return 1;
+    if (!a.startsWith("_") && b.startsWith("_")) return -1;
+    return a.localeCompare(b);
   };
 </script>
 
-<svelte:window on:keydown={handleKeys} on:keyup={handleKeyUp} />
+<svelte:window on:keydown={handleWindowKeydown} />
 
-<div class="container">
-  <div class="tabs-container">
-    {#each tabs as [key, value]}
-      {#if value.subcategories && Object.values(value.subcategories).length !== 0}
-        <button
-          class="tab"
-          class:active={menuOpen && activeTab === key}
-          on:click={() => {
-            if (activeTab === key) {
-              menuOpen = !menuOpen;
-            } else {
-              activeTab = key;
-              menuOpen = true;
-            }
-          }}
-        >
-          <div>
-            <svg viewBox="0 0 24 24" role="presentation">
-              {#if key === "globals"}
-                <path
-                  d="M8,3A2,2 0 0,0 6,5V9A2,2 0 0,1 4,11H3V13H4A2,2 0 0,1 6,15V19A2,2 0 0,0 8,21H10V19H8V14A2,2 0 0,0 6,12A2,2 0 0,0 8,10V5H10V3M16,3A2,2 0 0,1 18,5V9A2,2 0 0,0 20,11H21V13H20A2,2 0 0,0 18,15V19A2,2 0 0,1 16,21H14V19H16V14A2,2 0 0,1 18,12A2,2 0 0,1 16,10V5H14V3H16Z"
-                  style="fill: currentcolor;"
-                ></path>
-              {:else if key === "classes"}
-                <path
-                  d="M18,22A2,2 0 0,0 20,20V4C20,2.89 19.1,2 18,2H12V9L9.5,7.5L7,9V2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18Z"
-                  style="fill: currentcolor;"
-                ></path>
-              {:else if key === "libraries"}
-                <path
-                  d="M9 3V18H12V3H9M12 5L16 18L19 17L15 4L12 5M5 5V18H8V5H5M3 19V21H21V19H3Z"
-                  style="fill: currentcolor;"
-                ></path>
-              {:else if key === "hooks"}
-                <path
-                  d="M18,6C18,7.82 16.76,9.41 15,9.86V17A5,5 0 0,1 10,22A5,5 0 0,1 5,17V12L10,17H7A3,3 0 0,0 10,20A3,3 0 0,0 13,17V9.86C11.23,9.4 10,7.8 10,5.97C10,3.76 11.8,2 14,2C16.22,2 18,3.79 18,6M14,8A2,2 0 0,0 16,6A2,2 0 0,0 14,4A2,2 0 0,0 12,6A2,2 0 0,0 14,8Z"
-                  style="fill: currentcolor;"
-                ></path>
-              {:else if key === "modules"}
-                <path
-                  d="M16,5V11H21V5M10,11H15V5H10M16,18H21V12H16M10,18H15V12H10M4,18H9V12H4M4,11H9V5H4V11Z"
-                  style="fill: currentcolor;"
-                ></path>
-              {:else if key === "plugins"}
-                <path
-                  d="M16,7V3H14V7H10V3H8V7H8C7,7 6,8 6,9V14.5L9.5,18V21H14.5V18L18,14.5V9C18,8 17,7 16,7Z"
-                  style="fill: currentcolor;"
-                ></path>
-              {:else if key === "panels"}
-                <path
-                  fill="currentColor"
-                  d="M10 5v6h11V5m-5 13h5v-6h-5M4 18h5V5H4m6 13h5v-6h-5z"
-                />
-              {:else if key === "enums"}
-                <path
-                  fill="currentColor"
-                  d="M7 13v-2h14v2zm0 6v-2h14v2zM7 7V5h14v2zM3 8V5H2V4h2v4zm-1 9v-1h3v4H2v-1h2v-.5H3v-1h1V17zm2.25-7a.75.75 0 0 1 .75.75c0 .2-.08.39-.21.52L3.12 13H5v1H2v-.92L4 11H2v-1z"
-                />
-              {:else if key === "structs"}
-                <path
-                  fill="currentColor"
-                  d="M12 3C7.58 3 4 4.79 4 7s3.58 4 8 4s8-1.79 8-4s-3.58-4-8-4M4 9v3c0 2.21 3.58 4 8 4s8-1.79 8-4V9c0 2.21-3.58 4-8 4s-8-1.79-8-4m0 5v3c0 2.21 3.58 4 8 4s8-1.79 8-4v-3c0 2.21-3.58 4-8 4s-8-1.79-8-4"
-                />
-              {:else}
-                <path
-                  fill="currentColor"
-                  d="M13.64 21.97a.99.99 0 0 1-1.33-.47l-2.18-4.74l-2.51 2.02c-.17.14-.38.22-.62.22a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1c.24 0 .47.09.64.23l.01-.01l11.49 9.64a1.001 1.001 0 0 1-.44 1.75l-3.16.62l2.2 4.73c.26.5.02 1.09-.48 1.32z"
-                />
-              {/if}
-            </svg>
-            <span>{value.name}</span>
-          </div>
-        </button>
-      {/if}
-    {/each}
-    <button
-      class="tab tab-search"
-      on:click={() => {
-        visible = !visible;
-        console.log(project);
-      }}
-    >
-      <div>
-        <svg viewBox="0 0 24 24" role="presentation"
-          ><path
-            fill="currentColor"
-            d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5l-1.5 1.5l-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16A6.5 6.5 0 0 1 3 9.5A6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14S14 12 14 9.5S12 5 9.5 5"
-          /></svg
-        >
-        <span>Search</span>
-      </div>
+<button
+  class="drawer-backdrop"
+  class:visible={mobileOpen}
+  aria-label="Close documentation navigation"
+  tabindex={mobileOpen ? 0 : -1}
+  on:click={() => closeMobileMenu()}
+></button>
+
+<nav
+  id="documentation-navigation"
+  class="navigation-shell"
+  class:mobile-open={mobileOpen}
+  aria-label="Documentation navigation"
+  use:focusTrap={mobileOpen}
+>
+  <div class="mobile-drawer-header">
+    <div class="mobile-brand">
+      <img src="branding/cn-logo-mark.png" alt="" />
+      <div><span>Civil Networks</span><strong>Documentation</strong></div>
+    </div>
+    <button aria-label="Close documentation navigation" on:click={() => closeMobileMenu()}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
     </button>
   </div>
-  <div class="menu-container" class:active={menuOpen}>
-    {#key project}
-      {#if activeTab && project[activeTab]}
-        {#each Object.values(project[activeTab].subcategories).sort( (a, b) => shortForcefully(clear_label(a.name), clear_label(b.name)) ) as subcategory, i (`${activeTab}-${subcategory.name}`)}
-          {@const key = `${activeTab}-${subcategory.name}`}
 
-          {#if subcategory.item.startsWith("category") && "subcategories" in subcategory}
-            {@const content = Object.values(subcategory.subcategories).sort(
-              (a, b) =>
-                shortForcefully(clear_label(a.name), clear_label(b.name))
-            )}
-
-            <SubCategory
-              href="/{activeTab}/{subcategory.name}"
-              label={clear_label(subcategory.name)}
-              count={content.length}
-            >
-              {#each content as item, i}
-                <ItemLink
-                  {item}
-                  parentLink={`/${activeTab}/${subcategory.name}`}
-                  on:click={closeMenu}
-                />
-              {/each}
-            </SubCategory>
-          {:else}
-            <ItemLink
-              stacked={true}
-              item={subcategory}
-              parentLink={`/${activeTab}`}
-              on:click={closeMenu}
-            />
-          {/if}
-
-          <!-- <a use:link href="/{activeTab}/{subcategory.name}" class="subcategory"
-            >{subcategory.name}</a
-          > -->
-        {/each}
-      {/if}
-    {/key}
-    <!-- TODO -->
+  <div class="index-tools">
+    <button class="index-search" aria-label="Search documentation" on:click={openSearch}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 3a6.5 6.5 0 1 1 0 13A6.5 6.5 0 0 1 9.5 3m5.21 11.71L20 20" /></svg>
+      <span>Search documentation</span>
+      <kbd>/</kbd>
+    </button>
   </div>
-  {#if visible}
-    <SearchPane {project} bind:visible bind:searchText />
-  {/if}
-</div>
+
+  <div class="index-scroll">
+    <p class="index-label">Documentation index</p>
+    {#each tabs as [key, value]}
+      {#if value.subcategories && Object.values(value.subcategories).length !== 0}
+        <section class="index-group" class:active={expandedTab === key}>
+          <button
+            class="group-toggle"
+            aria-expanded={expandedTab === key}
+            aria-controls={`index-${key}`}
+            on:click={() => expandedTab = expandedTab === key ? "" : key}
+          >
+            <span class="group-marker" aria-hidden="true"></span>
+            <span class="group-name">{value.name}</span>
+            <span class="group-count">{Object.values(value.subcategories).length}</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+          </button>
+
+          {#if expandedTab === key}
+            <div class="group-content" id={`index-${key}`}>
+              {#each Object.values(value.subcategories).sort((a, b) => sortLabels(clear_label(a.name), clear_label(b.name))) as subcategory (`${key}-${subcategory.name}`)}
+                {#if subcategory.item.startsWith("category") && "subcategories" in subcategory}
+                  {@const content = Object.values(subcategory.subcategories).sort((a, b) => sortLabels(clear_label(a.name), clear_label(b.name)))}
+                  <SubCategory href="/{key}/{subcategory.name}" label={clear_label(subcategory.name)} count={content.length} on:navigate={() => closeMobileMenu()}>
+                    {#each content as item}
+                      <ItemLink {item} parentLink={`/${key}/${subcategory.name}`} on:click={() => closeMobileMenu()} />
+                    {/each}
+                  </SubCategory>
+                {:else}
+                  <ItemLink stacked={true} item={subcategory} parentLink={`/${key}`} on:click={() => closeMobileMenu()} />
+                {/if}
+              {/each}
+            </div>
+          {/if}
+        </section>
+      {/if}
+    {/each}
+  </div>
+</nav>
 
 <style>
-  .container {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    justify-content: center;
-    box-shadow:
-      0px 0px 4px -1px rgba(0, 0, 0, 0.2),
-      0px 0px 5px 0px rgba(0, 0, 0, 0.14),
-      0px 0px 10px 0px rgba(0, 0, 0, 0.12);
-    position: relative;
+  .navigation-shell { position: relative; z-index: 120; display: grid; width: var(--navigation-width); height: 100%; min-height: 0; flex: 0 0 var(--navigation-width); grid-template-rows: auto minmax(0,1fr); color: var(--text-secondary); background: var(--surface-rail); border-right: 1px solid var(--border-subtle); }
+  .mobile-drawer-header, .drawer-backdrop { display: none; }
+  .index-tools { padding: 1rem; border-bottom: 1px solid var(--border-subtle); }
+  .index-search { display: flex; width: 100%; height: 3.6rem; align-items: center; gap: .8rem; padding: 0 .8rem 0 1rem; color: var(--text-muted); background: rgba(0,0,0,.16); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); font-size: 1.25rem; text-align: left; }
+  .index-search:hover { color: var(--text-primary); background: var(--surface-hover); }
+  .index-search svg { width: 1.7rem; height: 1.7rem; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 1.8; }
+  .index-search kbd { margin-left: auto; padding: 0 .5rem; color: var(--text-muted); background: var(--surface-recessed); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); font-family: var(--ui-font); font-size: 1rem; }
+  .index-scroll { min-height: 0; overflow-y: auto; padding: .8rem 0 1.6rem; }
+  .index-label { padding: .9rem 1.4rem .7rem; color: var(--text-disabled); font-size: 1rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+  .index-group + .index-group { border-top: 1px solid rgba(236,240,243,.055); }
+  .group-toggle { display: grid; width: 100%; min-height: 3.8rem; grid-template-columns: .5rem minmax(0,1fr) auto auto; align-items: center; gap: .8rem; padding: .4rem 1.1rem; color: var(--text-secondary); text-align: left; transition: color var(--motion-fast) ease, background var(--motion-fast) ease; }
+  .group-toggle:hover { color: var(--text-primary); background: var(--surface-hover); }
+  .index-group.active > .group-toggle { color: var(--text-primary); background: rgba(0,0,0,.12); }
+  .group-marker { width: .4rem; height: .4rem; background: var(--text-disabled); border-radius: 50%; }
+  .index-group.active .group-marker { width: .4rem; height: 1.6rem; background: var(--cn-red); border-radius: 1px; }
+  .group-name { overflow: hidden; font-size: 1.3rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+  .group-count { min-width: 2rem; color: var(--text-disabled); font-size: 1.05rem; text-align: right; }
+  .group-toggle svg { width: 1.5rem; height: 1.5rem; fill: currentColor; opacity: .62; transition: transform var(--motion-fast) ease; }
+  .index-group.active .group-toggle svg { transform: rotate(90deg); }
+  .group-content { padding: .4rem 0 .8rem; background: rgba(0,0,0,.07); border-top: 1px solid rgba(236,240,243,.04); }
+
+  @media (max-width: 900px) {
+    .drawer-backdrop { position: fixed; z-index: 390; top: var(--header-height-mobile); right: 0; bottom: 0; left: 0; display: block; visibility: hidden; background: var(--surface-overlay); opacity: 0; transition: opacity var(--motion-standard) ease, visibility var(--motion-standard) ease; }
+    .drawer-backdrop.visible { visibility: visible; opacity: 1; }
+    .navigation-shell { position: fixed; z-index: 450; top: var(--header-height-mobile); bottom: 0; left: 0; width: min(90vw,34rem); height: auto; grid-template-rows: auto auto minmax(0,1fr); visibility: hidden; border-right: 1px solid var(--border-strong); box-shadow: 14px 0 34px rgba(0,0,0,.34); transform: translateX(-104%); transition: transform var(--motion-standard) var(--ease-standard), visibility var(--motion-standard) ease; }
+    .navigation-shell.mobile-open { visibility: visible; transform: translateX(0); }
+    .mobile-drawer-header { display: flex; min-height: 5.8rem; align-items: center; justify-content: space-between; gap: 1rem; padding: .7rem 1rem; border-bottom: 1px solid var(--border-subtle); }
+    .mobile-brand { display: flex; align-items: center; gap: .8rem; }
+    .mobile-brand img { width: 3.4rem; height: 3.4rem; object-fit: contain; }
+    .mobile-brand > div { display: grid; line-height: 1.2; }
+    .mobile-brand span { color: var(--text-muted); font-size: .9rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .mobile-brand strong { color: var(--text-primary); font-size: 1.35rem; }
+    .mobile-drawer-header > button { display: grid; width: 4rem; height: 4rem; place-items: center; color: var(--text-secondary); border-radius: var(--radius-sm); }
+    .mobile-drawer-header > button:hover { background: var(--surface-hover); }
+    .mobile-drawer-header svg { width: 1.8rem; height: 1.8rem; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 1.8; }
   }
 
-  .tabs-container {
-    display: flex;
-    flex-direction: column;
-    width: 6.4rem;
-    background: var(--sideMenu-background);
-    color: var(--sideMenu-text);
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
-  }
-
-  .tab {
-    display: block;
-    width: 100%;
-    cursor: pointer;
-    height: 6.4rem;
-    transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1);
-    background-color: transparent;
-    border: none;
-    border-bottom: 2px solid var(--sideMenu-divider);
-    color: inherit;
-    font-family: inherit;
-    font-size: inherit;
-  }
-
-  .tab-search {
-    margin-top: auto;
-  }
-
-  .tab.active {
-    background-color: var(--sideMenu-active);
-  }
-
-  .tab div:hover {
-    background: var(--sideMenu-hover);
-  }
-
-  .tab div {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    flex-direction: column;
-    padding-top: 1.1rem;
-    transition: background 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .tab div svg {
-    width: 2.4rem;
-    height: 2.4rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .tab div span {
-    font-weight: 500;
-    font-size: 1.2rem;
-    line-height: 1.2rem;
-    user-select: none;
-  }
-
-  .menu-container {
-    --container-width: 35rem;
-    width: var(--container-width);
-    max-width: 0;
-    overflow-x: hidden;
-    transition: max-width 250ms cubic-bezier(0.4, 0, 0.2, 1);
-    padding-top: 0.4rem;
-    background: var(--colors-background_4);
-    scrollbar-width: thin;
-  }
-
-  .menu-container.active {
-    max-width: var(--container-width);
-  }
-
-  /* .menu-container > * {
-    width: var(--container-width);
-  } */
-
-  .menu-container > a:first-child {
-    display: inline-block;
-    margin-top: 0.4rem;
-  }
-
-  .menu-container > a > div {
-    padding-left: 2rem;
-  }
-
-  @media (max-width: 1000px) {
-    .tabs-container {
-      z-index: 120;
-    }
-
-    .menu-container {
-      position: absolute;
-      z-index: 100;
-      left: 6.4rem;
-      height: 100%;
-      box-shadow:
-        0px 0px 4px -1px rgba(0, 0, 0, 0.2),
-        0px 0px 5px 0px rgba(0, 0, 0, 0.14),
-        0px 0px 10px 0px rgba(0, 0, 0, 0.12);
-    }
-  }
-
-  @media (max-width: 400px) {
-    .menu-container {
-      width: calc(90vw - 6.4rem);
-    }
-  }
+  @media (max-width: 390px) { .navigation-shell { width: 100vw; } }
 </style>

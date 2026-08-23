@@ -47,23 +47,4 @@
   $: filteredTypes = types ? filterTypes() : [];
 </script>
 
-{#each filteredTypes as type, i}
-  {#if type.link.startsWith("https")}
-    <a href={type.link}>{type.label}</a>
-  {:else}
-    <a use:link href={type.link}>{type.label}</a>
-  {/if}
-  {#if i < filteredTypes.length - 1}
-    {#if list}
-      <span>{" or "}</span>
-    {:else}
-      <span>{", "}</span>
-    {/if}
-  {/if}
-{/each}
-
-<style>
-  span {
-    white-space: pre;
-  }
-</style>
+{#each filteredTypes as type, i}{#if type.link.startsWith("https")}<a href={type.link}>{type.label}</a>{:else}<a use:link href={type.link}>{type.label}</a>{/if}{#if i < filteredTypes.length - 1}<span>{list ? " or " : ", "}</span>{/if}{/each}

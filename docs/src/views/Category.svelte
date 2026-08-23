@@ -2,17 +2,13 @@
   import { marked } from "marked";
 
   import GetTypes from "../components/GetTypes.svelte";
-  import function_name from "../utils/funName";
   import type {
     Category,
     FunctionPage,
-    FunctionParameters,
-    FunctionReturns,
     TablePage,
     ValidSubcategory,
   } from "../utils/parsed";
   import Page from "./Page.svelte";
-  import { onMount } from "svelte";
   import { link, location } from "svelte-spa-router";
   import FunctionSignature from "./fragments/FunctionSignature.svelte";
 
@@ -54,16 +50,19 @@
     </p>
   {/if}
   {#if description}
-    <h5 class="section">Description</h5>
+    <h2 class="section">Description</h2>
     <div class="section-container">
       {@html marked(description)}
     </div>
   {/if}
   {#if fields.length !== 0}
-    <h5 class="section">Attributes</h5>
+    <h2 class="section">Attributes</h2>
     <div class="section-container">
       <div class="table-container">
-        <table>
+        <table aria-label={`${category} attributes`}>
+          <thead>
+            <tr><th scope="col">Type</th><th scope="col">Name</th><th scope="col">Description</th></tr>
+          </thead>
           <tbody>
             {#each fields as field, index}
               <tr data-key={`${index}-${field.key}--${field.type}`}>
@@ -78,14 +77,14 @@
     </div>
   {/if}
   {#if subItems.function.length > 0}
-    <h5 class="section">Functions</h5>
+    <h2 class="section">Functions</h2>
     <div class="section-container">
       {#each subItems.function as functItem}
         <div class="funct">
           <a use:link href="{$location}/{functItem.name}">{functItem.name}</a>
           <FunctionSignature item={functItem} {category} />
           {#if functItem.description}
-            <p>{@html marked(functItem.description)}</p>
+            <div class="funct-description">{@html marked(functItem.description)}</div>
           {/if}
         </div>
       {/each}
@@ -97,23 +96,36 @@
   .funct {
     display: flex;
     flex-direction: column;
-    margin-bottom: 1.5rem;
-    margin-top: 2rem;
+    margin: 0;
+    padding: 1.4rem 0;
+    border-top: 1px solid var(--border-subtle);
   }
+
+  .funct:last-child { border-bottom: 1px solid var(--border-subtle); }
+
+  .funct > a {
+    width: fit-content;
+    margin-bottom: 0.4rem;
+    font-size: 1.45rem;
+  }
+
+  .funct-description :global(p) { margin: .5rem 0 0; }
 
   .inherits {
     display: flex;
     align-items: baseline;
+    flex-wrap: wrap;
     gap: 0.7rem;
-    margin: 1.2rem 0 0;
+    margin: 2rem 0 0;
     font-size: 1.4rem;
-    color: var(--text-background-medium);
+    color: var(--text-muted);
   }
 
   .inherits .label {
     font-size: 1.1rem;
+    font-weight: 800;
     letter-spacing: 0.11em;
     text-transform: uppercase;
-    color: var(--text-background-disabled);
+    color: var(--text-disabled);
   }
 </style>

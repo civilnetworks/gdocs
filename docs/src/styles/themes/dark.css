@@ -1,55 +1,66 @@
 :root {
-  --colors-main: rgb(144, 202, 249);
+  color-scheme: dark;
 
-  --colors-background_0: rgb(28, 33, 36);
-  --colors-background_1: rgb(34, 41, 47);
-  --colors-background_2: rgb(35, 43, 50);
-  --colors-background_3: rgb(37, 46, 53);
-  --colors-background_4: rgb(38, 48, 55);
-  --colors-background_5: rgb(40, 50, 58);
-  --colors-background_6: rgb(41, 52, 60);
-  --colors-background_7: rgb(42, 53, 62);
-  --colors-background_8: rgb(43, 55, 64);
-  --colors-background_9: rgb(44, 56, 66);
-  --colors-background_10: rgb(45, 58, 68);
-  --colors-background_11: rgb(46, 59, 69);
-  --colors-background_12: rgb(47, 60, 71);
-  --colors-background_13: rgb(47, 61, 72);
-  --colors-background_14: rgb(48, 62, 73);
-  --colors-background_15: rgb(48, 62, 73);
-  --colors-background_16: rgb(49, 63, 74);
+  /* Approved Civil Networks palette */
+  --cn-red: #ff2b2b;
+  --cn-red-hover: #ff4545;
+  --cn-black: #1f2125;
+  --cn-slate: #343946;
+  --cn-slate-dark: #303134;
+  --cn-highlight: #ecf0f3;
+  --cn-text-muted: #aeb4bf;
 
-  --text-background-high: rgba(255, 255, 255, 0.83);
-  --text-background-medium: rgba(255, 255, 255, 0.6);
-  --text-background-disabled: rgba(255, 255, 255, 0.38);
-  --text-background-hover: rgba(255, 255, 255, 0.04);
+  /* Semantic surfaces */
+  --surface-page: var(--cn-black);
+  --surface-header: #17191d;
+  --surface-rail: #202329;
+  --surface-navigation: #25282e;
+  --surface-content: #24272d;
+  --surface-raised: #2c3038;
+  --surface-recessed: #181a1f;
+  --surface-hover: rgba(236, 240, 243, 0.055);
+  --surface-selected: rgba(255, 43, 43, 0.095);
+  --surface-overlay: rgba(5, 6, 8, 0.76);
 
-  --realms-client: #f39c12;
-  --realms-server: #3498db;
+  /* Text and borders */
+  --text-primary: var(--cn-highlight);
+  --text-secondary: #c5cbd4;
+  --text-muted: var(--cn-text-muted);
+  --text-disabled: #7e8590;
+  --border-subtle: rgba(236, 240, 243, 0.1);
+  --border-strong: rgba(236, 240, 243, 0.17);
+  --focus-ring: var(--cn-red);
+  --danger: #ff6b6b;
+  --link-color: #ff6b6b;
+  --link-hover: #ff8a8a;
 
-  --arguments-background: rgb(144, 202, 249);
-  --arguments-color: var(--colors-background_2);
+  /* Layout, shape, elevation and motion */
+  --header-height: 56px;
+  --header-height-mobile: 54px;
+  --navigation-width: 300px;
+  --content-width: 1120px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 7px;
+  --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.16);
+  --shadow-overlay: 0 14px 36px rgba(0, 0, 0, 0.42);
+  --motion-fast: 180ms;
+  --motion-standard: 220ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 
-  --sideMenu-background: var(--colors-background_8);
-  --sideMenu-active: rgba(255, 255, 255, 0.12);
-  --sideMenu-text: rgba(255, 255, 255, 0.83);
-  --sideMenu-hover: rgba(255, 255, 255, 0.04);
-  --sideMenu-divider: rgba(255, 255, 255, 0.3);
-
-  --codeBlocks-background: var(--colors-background_6);
-  --codeBlocks-color: rgba(255, 255, 255, 0.83);
-  --codeBlocks-comment: #95a5a6;
-  --codeBlocks-punctuation: #95a5a6;
-  --codeBlocks-number: #f39c12;
-  --codeBlocks-string: #1abc9c;
-  --codeBlocks-operator: #e74c3c;
-  --codeBlocks-keyword: #9b59b6;
-  --codeBlocks-function: #9b59b;
-
-  --table-background: var(--colors-background_16);
-  --table-alternative: var(--colors-background_8);
-
-  --badges-internal: #919191;
-  --badges-stub: #03a1fc;
-  --badges-deprecated: #fc6b03;
+  /* Documentation semantics */
+  --realm-client: #e0a911;
+  --realm-server: #39a9e8;
+  --code-background: var(--surface-recessed);
+  --code-color: var(--cn-highlight);
+  --code-comment: #9aa3ad;
+  --code-punctuation: #c5cbd4;
+  --code-number: #f5a55b;
+  --code-string: #65d6b4;
+  --code-operator: #ff8585;
+  --code-keyword: #caa8ff;
+  --code-function: #8ecbff;
+  --badge-internal: #747b86;
+  --badge-stub: #247ead;
+  --badge-deprecated: #b55b27;
 }

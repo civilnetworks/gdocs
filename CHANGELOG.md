@@ -87,3 +87,18 @@
 Any tag name followed by `[` is now parsed as a tag. Text such as `@foo[bar]`
 that previously fell through to the description will now be reported as an
 unknown tag.
+
+## Version 1.3.0
+
+- Redesign the documentation frontend as a compact GMod Wiki and CN PayNow
+  hybrid, using approved Civil Networks branding and a restrained dark theme.
+- Add a responsive application header, documentation index, search experience,
+  home page, and shared not-found and error states.
+- Show client, server, and shared realm badges beside sidebar entries and in
+  function signatures.
+- Improve reference-page density, typography, tables, code highlighting, link
+  colours, inheritance links, and small-screen navigation.
+- Fix multi-return function signatures so return types are separated with
+  commas, and remove incidental whitespace around types, method colons, unions,
+  and parameters.
+- Add the CN PayNow theme specification and packaged CN branding assets.

@@ -16,37 +16,21 @@
 
   let title: string = "";
 
-  let description = item.description || "";
-
   const examples: string[] = item.examples ?? [];
   const parameters: FunctionParameters[] = item.parameters ?? [];
   const returns: FunctionReturns[] = item.returns ?? [];
 
   const internalMessage =
-    "**This is used internally - although you're able to use it you probably shouldn't.**";
+    "**This is used internally. Although you can use it, you probably shouldn't.**";
   const deprecatedMessage =
-    "**We advice agains't using this. It may be changed or removed in a future update.**";
+    "**We advise against using this. It may be changed or removed in a future update.**";
   const stubMessage = "**This article is a stub.**";
-
-  $: {
-    if (item.internal) {
-      description = description
-        ? `${description}\n\n${internalMessage}`
-        : internalMessage;
-    }
-
-    if (item.deprecated) {
-      description = description
-        ? `${description}\n\n${deprecatedMessage}`
-        : deprecatedMessage;
-    }
-
-    if (item.stub) {
-      description = description
-        ? `${description}\n\n${stubMessage}`
-        : stubMessage;
-    }
-  }
+  $: description = [
+    item.description || "",
+    item.internal ? internalMessage : "",
+    item.deprecated ? deprecatedMessage : "",
+    item.stub ? stubMessage : "",
+  ].filter(Boolean).join("\n\n");
   let func_name: string = "";
   let isMethod: boolean;
 
@@ -64,14 +48,14 @@
   </div>
 
   {#if description}
-    <h5 class="section">Description</h5>
+    <h2 class="section">Description</h2>
     <div class="section-container">
       {@html htmlDescription}
     </div>
   {/if}
 
   {#if parameters.length !== 0}
-    <h5 class="section">Arguments</h5>
+    <h2 class="section">Arguments</h2>
     <div class="section-container">
       {#each parameters as param, index (index)}
         <div class="parameter-box">
@@ -84,9 +68,9 @@
                   : "optional"}</span
               >{/if}
           </p>
-          <p>
+          <div class="parameter-description">
             {@html marked(param.description)}
-          </p>
+          </div>
           <span>{index + 1}</span>
         </div>
       {/each}
@@ -94,16 +78,16 @@
   {/if}
 
   {#if returns.length !== 0}
-    <h5 class="section">Returns</h5>
+    <h2 class="section">Returns</h2>
     <div class="section-container">
       {#each returns as ret, index (index)}
         <div class="parameter-box">
           <p class="title">
             <GetTypes types={ret.type} />
           </p>
-          <p>
+          <div class="parameter-description">
             {@html marked(ret.description)}
-          </p>
+          </div>
           <span>{index + 1}</span>
         </div>
       {/each}
@@ -111,7 +95,7 @@
   {/if}
 
   {#if examples.length !== 0}
-    <h5 class="section">Examples</h5>
+    <h2 class="section">Examples</h2>
     <div class="section-container">
       {@html marked(examples.join("\n\n"))}
     </div>
@@ -121,52 +105,85 @@
 <style>
   .parameter-box {
     position: relative;
-    margin-bottom: 2.4rem;
+    min-height: 5.6rem;
+    margin: 0;
+    padding: 1.2rem 1.2rem 1.2rem 4.6rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .parameter-box:last-child {
+    border-bottom: 1px solid var(--border-subtle);
   }
 
   .parameter-box .opt-flag {
+    display: inline-flex;
+    min-height: 2rem;
+    align-items: center;
     margin-left: 0.8rem;
-    padding: 0.1rem 0.6rem;
-    border-radius: 0.9rem;
-    font-size: 1.1rem;
+    padding: 0.2rem 0.7rem;
+    color: var(--text-muted);
+    background: rgba(17, 18, 22, 0.38);
+    border: 1px solid var(--border-strong);
+    border-radius: 2px;
+    font-size: 1rem;
     font-style: italic;
     white-space: nowrap;
-    color: var(--text-background-medium);
-    border: 1px solid var(--text-background-disabled);
-    vertical-align: 0.15rem;
   }
 
   .parameter-box > span {
     position: absolute;
-    left: 0;
-    top: 0;
-    height: 1.8rem;
-    width: 2.8rem;
-    text-align: center;
-    line-height: 1.8rem;
-    font-weight: 700;
-    background: var(--arguments-background);
-    color: var(--arguments-color);
+    top: 1.25rem;
+    left: 1rem;
+    display: grid;
+    width: 2.3rem;
+    height: 2.3rem;
+    place-items: center;
+    color: #fff;
+    background: var(--cn-red);
+    border-radius: 2px;
+    font-size: 1.1rem;
+    font-weight: 800;
     user-select: none;
-    border-radius: 0.45rem 0.1rem 0.1rem 0.45rem;
-    font-size: 1.4rem;
-  }
-
-  .parameter-box span,
-  .parameter-box strong {
-    white-space: pre;
-  }
-
-  .parameter-box > p:first-child {
-    font-weight: 500;
   }
 
   .parameter-box > p {
-    margin-left: 3.8rem;
+    margin: 0.45rem 0 0;
+    color: var(--text-secondary);
+    line-height: 1.55;
   }
 
+  .parameter-description {
+    margin-top: .45rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  .parameter-description :global(p) { margin: 0; }
+
   .parameter-box > p.title {
-    display: inline-flex;
-    margin: 0 0 0 3.8rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    column-gap: 0.45rem;
+    margin: 0;
+    color: var(--text-primary);
+    font-family: var(--code-font);
+    font-size: 1.35rem;
+    font-weight: 600;
+  }
+
+  .parameter-box strong {
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 480px) {
+    .parameter-box {
+      padding-right: .8rem;
+      padding-left: 4.2rem;
+    }
+
+    .parameter-box > span {
+      left: 1rem;
+    }
   }
 </style>
