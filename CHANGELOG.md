@@ -102,3 +102,8 @@ unknown tag.
   commas, and remove incidental whitespace around types, method colons, unions,
   and parameters.
 - Add the CN PayNow theme specification and packaged CN branding assets.
+
+## Version 1.3.1
+
+- Fix lag when opening large navigation categories such as Panels by loading
+  entries only when their panel is expanded.
