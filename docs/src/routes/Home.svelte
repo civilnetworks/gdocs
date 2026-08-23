@@ -21,7 +21,7 @@
   <header class="home-header">
     <img src="branding/cn-logo-mark.png" alt="" />
     <div>
-      <p>Civil Networks documentation</p>
+      <p>Civil Networks</p>
       <h1>{title}</h1>
     </div>
   </header>

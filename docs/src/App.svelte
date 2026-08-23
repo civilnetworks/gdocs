@@ -132,7 +132,7 @@
         <div class="loading-mark" aria-hidden="true">
           <span></span><span></span><span></span>
         </div>
-        <p class="state-eyebrow">Civil Networks documentation</p>
+        <p class="state-eyebrow">Civil Networks</p>
         <h1>Loading documentation…</h1>
         <p>Preparing the project index and navigation.</p>
       </section>

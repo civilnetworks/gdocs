@@ -33,8 +33,14 @@
     <span>{label}</span>
   </a>
 
-  <div id={regionId} class="body" class:expanded style={`--item-count: ${count}`}>
-    <slot />
+  <div
+    id={regionId}
+    class="body"
+    class:expanded
+    aria-hidden={!expanded}
+    style={`--item-count: ${count}`}
+  >
+    {#if expanded}<slot />{/if}
   </div>
 </div>
 
