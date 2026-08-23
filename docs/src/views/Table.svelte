@@ -2,10 +2,7 @@
   import { marked } from "marked";
 
   import GetTypes from "../components/GetTypes.svelte";
-  import function_name from "../utils/funName";
-  import type { FunctionParameters, FunctionReturns } from "../utils/parsed";
   import Page from "./Page.svelte";
-  import { onMount } from "svelte";
 
   export let item: any;
   export let category: string;
@@ -17,7 +14,7 @@
 
 <Page title={category}>
   {#if description}
-    <h5 class="section">Description</h5>
+    <h2 class="section">Description</h2>
     <div class="section-container">
       {@html marked(
         description +
@@ -28,10 +25,13 @@
     </div>
   {/if}
   {#if fields.length !== 0}
-    <h5 class="section">Values</h5>
+    <h2 class="section">Values</h2>
     <div class="section-container">
       <div class="table-container">
-        <table>
+        <table aria-label={`${category} values`}>
+          <thead>
+            <tr><th scope="col">Type</th><th scope="col">Name</th><th scope="col">Description</th></tr>
+          </thead>
           <tbody>
             {#each fields as field, index}
               <tr data-key={`${index}-${field.key}--${field.type}`}>

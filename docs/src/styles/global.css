@@ -1,64 +1,150 @@
 :root {
   font-size: 62.5%;
-  --roboto: Inter, Roboto, "Helvetica Neue", "Arial Nova", "Nimbus Sans", Arial,
-    sans-serif;
-  --code: ui-monospace, "JetBrains Mono", "Cascadia Code", "Source Code Pro",
-    Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  --ui-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --code-font: ui-monospace, "JetBrains Mono", "Cascadia Code",
+    "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
-a {
-  text-decoration: none;
+html {
+  background: var(--surface-page);
+  scroll-behavior: smooth;
 }
 
 html,
 body,
 #root {
-  height: 100vh;
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
 }
 
 body {
-  font-family: var(--roboto);
-  font-size: 1.6rem;
-  font-weight: normal;
-  letter-spacing: 0.05rem;
-  color: var(--text-background-high);
-  background: var(--colors-background_0);
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: var(--text-primary);
+  background: var(--surface-page);
+  font-family: var(--ui-font);
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
-#root {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* reset */
-
-button {
-  border: none;
-  margin: 0;
-  padding: 0;
-  width: auto;
-  overflow: visible;
-
-  background: transparent;
-
-  /* inherit font & color from ancestor */
+button,
+input,
+textarea,
+select {
   color: inherit;
   font: inherit;
+}
 
-  /* Normalize `line-height`. Cannot be changed from `normal` in Firefox 4+. */
-  line-height: normal;
-
-  /* Corrects font smoothing for webkit */
-  -webkit-font-smoothing: inherit;
-  -moz-osx-font-smoothing: inherit;
-
-  /* Corrects inability to style clickable `input` types in iOS */
+button {
+  width: auto;
+  overflow: visible;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
   -webkit-appearance: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img,
+svg {
+  display: block;
+}
+
+ul,
+ol {
+  list-style-position: outside;
+}
+
+::selection {
+  color: #fff;
+  background: rgba(255, 43, 43, 0.62);
+}
+
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+:where(button, a)[aria-disabled="true"],
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+* {
+  scrollbar-color: rgba(174, 180, 191, 0.45) rgba(17, 18, 22, 0.24);
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(17, 18, 22, 0.24);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(174, 180, 191, 0.38);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(174, 180, 191, 0.58);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (pointer: coarse) {
+  :where(button, a, input, select, textarea) {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

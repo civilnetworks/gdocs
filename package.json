@@ -1,6 +1,6 @@
 {
   "name": "gdocs",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "main": "index.js",
   "repository": "https://github.com/ruigouveiamaciel/gdocs.git",
   "author": "Rui Maciel <ruigouveiamaciel@gmail.com>",
